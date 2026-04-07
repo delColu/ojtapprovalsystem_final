@@ -111,6 +111,36 @@ export default function AuthenticatedLayout({ header, children }) {
         if (component === 'Supervisor/Reports') {
             return 'Reports';
         }
+        if (component === 'Dean/Dashboard') {
+            return 'Dean Dashboard';
+        }
+        if (component === 'Dean/Supervisors') {
+            return 'Supervisors';
+        }
+        if (component === 'Dean/Interns') {
+            return 'Interns';
+        }
+        if (component === 'Dean/Departments') {
+            return 'Departments';
+        }
+        if (component === 'Dean/Submissions') {
+            return 'All Submissions';
+        }
+        if (component === 'Dean/Reports') {
+            return 'Reports';
+        }
+        if (component === 'Admin/Dashboard') {
+            return 'Dashboard';
+        }
+        if (component === 'Admin/Users') {
+            return 'Users';
+        }
+        if (component === 'Admin/Tasks') {
+            return 'All Tasks';
+        }
+        if (component === 'Admin/ActivityLogs') {
+            return 'Activity Logs';
+        }
         // Check for My Reports page
         if (component === 'Student/MyReports') {
             return 'My Reports';
@@ -159,18 +189,18 @@ export default function AuthenticatedLayout({ header, children }) {
                 { name: 'Reports', href: route('supervisor.reports'), icon: ChartBarIcon },
             ],
             dean: [
-                { name: 'Dashboard', href: route('dashboard'), icon: HomeIcon },
-                { name: 'All Tasks', href: '/all-tasks', icon: ClipboardDocumentListIcon },
-                { name: 'Users', href: '/users', icon: UsersIcon },
-                { name: 'Activity Logs', href: '/activity-logs', icon: ChartBarIcon },
+                { name: 'Dashboard', href: route('dean.dashboard'), icon: HomeIcon },
+                { name: 'Supervisors', href: route('dean.supervisors.index'), icon: UsersIcon },
+                { name: 'Interns', href: route('dean.interns.index'), icon: AcademicCapIcon },
+                { name: 'Departments', href: route('dean.departments.index'), icon: FolderIcon },
+                { name: 'All Submissions', href: route('dean.submissions.index'), icon: ClipboardDocumentListIcon },
+                { name: 'Reports', href: route('dean.reports.index'), icon: ChartBarIcon },
             ],
             admin: [
-                { name: 'Dashboard', href: route('dashboard'), icon: HomeIcon },
-                { name: 'Supervisors', href: '/admin/users', icon: UsersIcon },
-                { name: 'Interns', href: '/admin/users?role=student', icon: AcademicCapIcon },
-                { name: 'Departments', href: '/departments', icon: FolderIcon },
-                { name: 'All Submissions', href: '/admin/reports', icon: DocumentIcon },
-                { name: 'Activity Logs', href: '/admin/activity-logs', icon: ChartBarIcon },
+                { name: 'Dashboard', href: route('admin.dashboard'), icon: HomeIcon },
+                { name: 'Users', href: '/admin/users', icon: UsersIcon },
+                { name: 'All Tasks', href: route('admin.tasks.index'), icon: ClipboardDocumentListIcon },
+                { name: 'Activity Logs', href: route('admin.activity-logs.index'), icon: ChartBarIcon },
             ],
         };
 
@@ -187,6 +217,16 @@ export default function AuthenticatedLayout({ header, children }) {
         if (href === route('supervisor.interns') && url === '/supervisor/interns') return true;
         if (href === route('supervisor.submissions') && url === '/supervisor/submissions') return true;
         if (href === route('supervisor.reports') && url === '/supervisor/reports') return true;
+        if (href === route('dean.dashboard') && url === '/dean/dashboard') return true;
+        if (href === route('dean.supervisors.index') && url.startsWith('/dean/supervisors')) return true;
+        if (href === route('dean.interns.index') && url.startsWith('/dean/interns')) return true;
+        if (href === route('dean.departments.index') && url.startsWith('/dean/departments')) return true;
+        if (href === route('dean.submissions.index') && url.startsWith('/dean/submissions')) return true;
+        if (href === route('dean.reports.index') && url.startsWith('/dean/reports')) return true;
+        if (href === route('admin.dashboard') && url === '/admin/dashboard') return true;
+        if (href === '/admin/users' && url.startsWith('/admin/users')) return true;
+        if (href === route('admin.tasks.index') && url.startsWith('/admin/tasks')) return true;
+        if (href === route('admin.activity-logs.index') && url.startsWith('/admin/activity-logs')) return true;
         if (href === '/submit-reports' && (url === '/submit-reports' || component === 'Student/SubmitReports')) return true;
         if (href === '/my-reports' && (url === '/my-reports' || component === 'Student/MyReports')) return true;
         if (href === '/folders' && url === '/folders') return true;

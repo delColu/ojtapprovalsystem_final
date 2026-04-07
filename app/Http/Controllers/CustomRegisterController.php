@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\ActivityLog;
@@ -37,6 +38,14 @@ class CustomRegisterController extends Controller
 
         // Ensure the student role exists
         $studentRole = Role::firstOrCreate(['name' => 'student']);
+        $department = null;
+
+        if ($request->filled('department')) {
+            $department = Department::query()->firstOrCreate(
+                ['name' => $request->department, 'company' => $request->company],
+                ['description' => null, 'is_active' => true]
+            );
+        }
 
         // Create the user
         $user = User::create([
@@ -44,8 +53,9 @@ class CustomRegisterController extends Controller
             'email'      => strtolower($request->email),
             'password'   => Hash::make($request->password),
             'role_id'    => $studentRole->id,
+            'department_id' => $department?->id,
             'student_id' => $request->student_id,
-            'department' => $request->department ?: 'CAST',
+            'department' => $department?->name ?? ($request->department ?: 'CAST'),
             'company'    => $request->company,
             'is_active'  => true,
         ]);

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminUserSeeder::class,
             DeanUserSeeder::class,
+            DepartmentSeeder::class,
             SupervisorUserSeeder::class,
             StudentUserSeeder::class,
         ]);
@@ -34,4 +35,3 @@ class DatabaseSeeder extends Seeder
 
     }
 }
-

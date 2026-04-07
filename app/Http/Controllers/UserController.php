@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
+use App\Models\Folder;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\ActivityLog;
@@ -17,10 +19,38 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::paginate(20);
-        $roles = Role::all();
+        $users = User::query()
+            ->with(['assignedRole', 'departmentRecord'])
+            ->latest()
+            ->get()
+            ->map(function (User $user) {
+                $taskStats = match ($user->role) {
+                    'student' => Submission::query()->where('student_id', $user->id)->count(),
+                    'supervisor' => Submission::query()->where('supervisor_id', $user->id)->count(),
+                    'dean' => Department::query()->where('dean_id', $user->id)->count(),
+                    default => Folder::query()->count(),
+                };
 
-        return inertia('Admin/Users/Index', compact('users', 'roles'));
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role ?? $user->assignedRole?->name,
+                    'student_id' => $user->student_id,
+                    'department_id' => $user->department_id,
+                    'department' => $user->departmentRecord?->name ?? $user->department,
+                    'company' => $user->departmentRecord?->company ?? $user->company,
+                    'tasks' => $taskStats,
+                    'joined' => optional($user->created_at)?->format('M j, Y'),
+                    'status' => $user->is_active ? 'Active' : 'Inactive',
+                ];
+            })
+            ->values();
+
+        $roles = Role::query()->orderBy('name')->get(['id', 'name']);
+        $departments = Department::query()->orderBy('name')->get(['id', 'name']);
+
+        return inertia('Admin/Users', compact('users', 'roles', 'departments'));
     }
 
     public function store(Request $request)
@@ -29,20 +59,29 @@ class UserController extends Controller
             'name'       => 'required|string|max:255',
             'email'      => 'required|email|unique:users',
             'role_id'    => 'required|exists:roles,id',
+            'department_id' => 'nullable|exists:departments,id',
             'department' => 'nullable|string',
             'company'    => 'nullable|string',
             'student_id' => 'nullable|unique:users',
+            'is_active' => 'nullable|boolean',
         ]);
+
+        $role = Role::query()->findOrFail($request->role_id);
+        $department = $request->filled('department_id')
+            ? Department::query()->find($request->department_id)
+            : null;
 
         $user = User::create([
             'name'       => $request->name,
             'email'      => $request->email,
             'password'   => Hash::make(Str::random(16)),
             'role_id'    => $request->role_id,
-            'department' => $request->department,
-            'company'    => $request->company,
+            'role'       => $role->name,
+            'department_id' => $department?->id,
+            'department' => $department?->name ?? $request->department,
+            'company'    => $department?->company ?? $request->company,
             'student_id' => $request->student_id,
-            'is_active'  => true,
+            'is_active'  => $request->boolean('is_active', true),
         ]);
 
         ActivityLog::create([
@@ -62,10 +101,24 @@ class UserController extends Controller
             'name'      => 'required|string|max:255',
             'email'     => 'required|email|unique:users,email,' . $user->id,
             'role_id'   => 'required|exists:roles,id',
+            'department_id' => 'nullable|exists:departments,id',
             'is_active' => 'boolean',
         ]);
+        $role = Role::query()->findOrFail($request->role_id);
+        $department = $request->filled('department_id')
+            ? Department::query()->find($request->department_id)
+            : null;
 
-$user->update($request->only(['name', 'email', 'role_id', 'is_active']));
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'role_id' => $request->role_id,
+            'role' => $role->name,
+            'department_id' => $department?->id,
+            'department' => $department?->name ?? $user->department,
+            'company' => $department?->company ?? $user->company,
+            'is_active' => $request->boolean('is_active'),
+        ]);
 
         ActivityLog::create([
             'user_id'    => Auth::id(),

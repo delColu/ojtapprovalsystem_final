@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
 use App\Models\Submission;
 use App\Models\Folder;
 use App\Models\User;
@@ -83,8 +84,9 @@ class SubmissionController extends Controller
     {
         $user = Auth::user();
         $canDeleteAsSupervisor = $user->isSupervisor() && $submission->folder?->supervisor_id === $user->id;
+        $canDeleteAsDean = $user->isDean() && $this->deanCanAccessSubmission($user, $submission);
 
-        if ($submission->student_id !== Auth::id() && ! $user->isAdmin() && ! $canDeleteAsSupervisor) {
+        if ($submission->student_id !== Auth::id() && ! $user->isAdmin() && ! $canDeleteAsSupervisor && ! $canDeleteAsDean) {
             abort(403);
         }
 
@@ -101,6 +103,10 @@ class SubmissionController extends Controller
     {
         $user = Auth::user();
 
+        if ($user->isDean() && ! $this->deanCanAccessSubmission($user, $submission)) {
+            abort(403);
+        }
+
         if ($user->isSupervisor() && $submission->folder->supervisor_id === $user->id) {
             $submission->update([
                 'status'        => 'approved',
@@ -112,9 +118,12 @@ class SubmissionController extends Controller
             Mail::to($submission->student->email)->send(new SubmissionStatusMail($submission, 'approved'));
         } elseif ($user->isDean()) {
             $submission->update([
-                'status' => 'forwarded',
+                'status' => 'approved',
                 'dean_id'=> $user->id,
+                'approved_at' => now(),
+                'feedback' => $request->feedback,
             ]);
+            Mail::to($submission->student->email)->send(new SubmissionStatusMail($submission, 'approved'));
         } else {
             abort(403);
         }
@@ -144,6 +153,10 @@ class SubmissionController extends Controller
 
         $user = Auth::user();
 
+        if ($user->isDean() && ! $this->deanCanAccessSubmission($user, $submission)) {
+            abort(403);
+        }
+
         if ($user->isSupervisor() && $submission->folder->supervisor_id !== $user->id) {
             abort(403);
         }
@@ -153,6 +166,7 @@ class SubmissionController extends Controller
             'rejected_at' => now(),
             'feedback'    => $request->feedback,
             'supervisor_id' => $user->isSupervisor() ? $user->id : $submission->supervisor_id,
+            'dean_id' => $user->isDean() ? $user->id : $submission->dean_id,
         ]);
 
         Mail::to($submission->student->email)->send(new SubmissionStatusMail($submission, 'rejected'));
@@ -188,6 +202,10 @@ class SubmissionController extends Controller
             abort(403);
         }
 
+        if ($user->isDean() && ! $this->deanCanAccessSubmission($user, $submission)) {
+            abort(403);
+        }
+
         $pdf = Pdf::loadView('pdf.submission', compact('submission'));
         return $pdf->download("submission-{$submission->id}.pdf");
     }
@@ -200,6 +218,23 @@ class SubmissionController extends Controller
             abort(403);
         }
 
+        if (auth()->user()->isSupervisor() && $submission->folder?->supervisor_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (auth()->user()->isDean() && ! $this->deanCanAccessSubmission(auth()->user(), $submission)) {
+            abort(403);
+        }
+
         return inertia('Submissions/Show', compact('submission'));
+    }
+
+    private function deanCanAccessSubmission($dean, Submission $submission): bool
+    {
+        $departmentIds = Department::query()
+            ->where('dean_id', $dean->id)
+            ->pluck('id');
+
+        return $departmentIds->contains($submission->student?->department_id);
     }
 }

@@ -32,6 +32,7 @@ class User extends Authenticatable
         'email',
         'role', // Direct role column
         'role_id',
+        'department_id',
         'password',
         'department',
         'company',
@@ -57,6 +58,11 @@ class User extends Authenticatable
     public function assignedRole(): BelongsTo
     {
         return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function departmentRecord(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'department_id');
     }
 
     public function submissions()

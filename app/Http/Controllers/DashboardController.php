@@ -116,59 +116,11 @@ class DashboardController extends Controller
         }
 
         if ($user->isDean()) {
-            $stats = [
-                'total_interns' => User::where('role_id', 4)->count(),
-                'active_tasks'  => Submission::where('status', 'pending')->count(),
-                'completed'     => Submission::where('status', 'approved')->count(),
-                'overdue'       => Submission::where('status', 'pending')
-                                    ->where('created_at', '<', now()->subDays(7))
-                                    ->count(),
-            ];
-
-            return inertia('Dean/Dashboard', ['stats' => $stats]);
+            return redirect()->route('dean.dashboard');
         }
 
         if ($user->isAdmin()) {
-            $stats = [
-                'total_interns'   => User::where('role_id', 4)->count(),
-                'pending_review'  => Submission::where('status', 'pending')->count(),
-                'approved'        => Submission::where('status', 'approved')->count(),
-                'rejected'        => Submission::where('status', 'rejected')->count(),
-            ];
-
-            $submissions = Submission::with(['student', 'folder', 'supervisor'])
-                ->latest()
-                ->take(10)
-                ->get()
-                ->map(function($submission) {
-                    return [
-                        'id' => $submission->id,
-                        'title' => $submission->title,
-                        'student_name' => $submission->student->name,
-                        'folder_name' => $submission->folder->name,
-                        'supervisor_name' => $submission->supervisor->name ?? 'N/A',
-                        'status' => $submission->status,
-                        'created_at' => $submission->created_at->format('Y-m-d'),
-                    ];
-                });
-
-            $interns = User::where('role_id', 4)
-                ->get()
-                ->map(function($user) {
-                    return [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'student_id' => $user->student_id,
-                        'department' => $user->department,
-                    ];
-                });
-
-            return inertia('Admin/Dashboard', [
-                'stats' => $stats,
-                'submissions' => $submissions,
-                'interns' => $interns
-            ]);
+            return redirect()->route('admin.dashboard');
         }
 
         // Fallback for any other role or no role

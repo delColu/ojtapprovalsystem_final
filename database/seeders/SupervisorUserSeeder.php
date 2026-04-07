@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Department;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -10,6 +11,8 @@ class SupervisorUserSeeder extends Seeder
 {
     public function run(): void
     {
+        $department = Department::query()->where('name', 'CAST')->first();
+
         User::updateOrCreate(
             ['email' => 'supervisor@gmail.com'],
             [
@@ -18,6 +21,7 @@ class SupervisorUserSeeder extends Seeder
                 'password'          => Hash::make('Supervisor@123'),
                 'role'              => 'supervisor',
                 'role_id'           => 3,
+                'department_id'     => $department?->id,
                 'department'        => 'CAST',
                 'company'           => 'OJT Partner Company',
                 'is_active'         => true,

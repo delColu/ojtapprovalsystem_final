@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Department;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -10,6 +11,9 @@ class StudentUserSeeder extends Seeder
 {
     public function run(): void
     {
+        $department = Department::query()->where('name', 'CAST')->first();
+        $supervisor = User::query()->where('email', 'supervisor@gmail.com')->first();
+
         $students = [
             // Computer Science
             ['name' => 'Alice Johnson', 'student_id' => 'CS2024001', 'email' => 'alice.johnson@student.edu', 'department' => 'CAST', 'company' => 'Tech Innovations Inc.'],
@@ -41,9 +45,11 @@ class StudentUserSeeder extends Seeder
                     'email'             => $student['email'],
                     'password'          => Hash::make('Student@123'),
                     'role_id'           => 4,
+                    'department_id'     => $department?->id,
                     'student_id'        => $student['student_id'],
                     'department'        => $student['department'],
                     'company'           => $student['company'],
+                    'supervisor_id'     => $supervisor?->id,
                     'is_active'         => true,
                     'email_verified_at' => now(),
                 ]
