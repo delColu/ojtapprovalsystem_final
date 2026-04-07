@@ -22,8 +22,7 @@ class DatabaseSeeder extends Seeder
             StudentUserSeeder::class,
         ]);
 
-        // 3️⃣ Seed folders for supervisors
-        $this->call(FoldersSeeder::class);
+
 
         // 3️⃣ Display default passwords
         $this->command->info('All seeders completed successfully!');
@@ -32,5 +31,7 @@ class DatabaseSeeder extends Seeder
         $this->command->info('- Dean: Dean@123');
         $this->command->info('- Supervisor: Supervisor@123');
         $this->command->info('- Student: Student@123');
+
     }
 }
+

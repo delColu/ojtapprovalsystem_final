@@ -153,7 +153,6 @@ class DashboardController extends Controller
                 });
 
             $interns = User::where('role_id', 4)
-                ->with('role')
                 ->get()
                 ->map(function($user) {
                     return [
@@ -178,6 +177,47 @@ class DashboardController extends Controller
             'recentReports' => [],
             'availableFolders' => [],
             'notifications' => []
+        ]);
+    }
+
+    public function supervisorDashboard()
+    {
+        $user = Auth::user();
+
+        $stats = [
+            'total'    => Submission::whereHas('folder', fn($q) => $q->where('supervisor_id', $user->id))->count(),
+            'pending'  => Submission::whereHas('folder', fn($q) => $q->where('supervisor_id', $user->id))
+                            ->where('status', 'pending')->count(),
+            'approved' => Submission::whereHas('folder', fn($q) => $q->where('supervisor_id', $user->id))
+                            ->where('status', 'approved')->count(),
+            'rejected' => Submission::whereHas('folder', fn($q) => $q->where('supervisor_id', $user->id))
+                            ->where('status', 'rejected')->count(),
+        ];
+
+        $interns = User::where('role_id', 4)->count();
+        $approvalRate = $stats['total'] > 0 ? ($stats['approved'] / $stats['total']) * 100 : 0;
+
+        $pendingSubmissions = Submission::whereHas('folder', fn($q) => $q->where('supervisor_id', $user->id))
+            ->with('student')
+            ->where('status', 'pending')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function($submission) {
+                return [
+                    'id' => $submission->id,
+                    'title' => $submission->title,
+                    'description' => substr($submission->description, 0, 100),
+                    'student_name' => $submission->student->name,
+                    'submitted_at' => $submission->created_at->format('Y-m-d'),
+                ];
+            });
+
+        return Inertia::render('Supervisor/Dashboard', [
+            'stats' => $stats,
+            'interns' => $interns,
+            'approvalRate' => $approvalRate,
+            'pendingSubmissions' => $pendingSubmissions
         ]);
     }
 

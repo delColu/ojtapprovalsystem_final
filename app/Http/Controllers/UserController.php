@@ -17,7 +17,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with('role')->paginate(20);
+        $users = User::paginate(20);
         $roles = Role::all();
 
         return inertia('Admin/Users/Index', compact('users', 'roles'));
@@ -95,7 +95,7 @@ $user->update($request->only(['name', 'email', 'role_id', 'is_active']));
 
     public function exportPdf()
     {
-        $users = User::with('role')->get();
+        $users = User::all();
         $pdf = Pdf::loadView('pdf.users', compact('users'));
         return $pdf->download('users-list.pdf');
     }

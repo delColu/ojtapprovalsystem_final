@@ -30,7 +30,7 @@
                 <td>{{ $user->id }}</td>
                 <td>{{ $user->name }}</td>
                 <td>{{ $user->email }}</td>
-                <td>{{ $user->role->name ?? 'N/A' }}</td>
+                <td>{{ ucfirst($user->role ?? $user->assignedRole->name ?? 'N/A') }}</td>
                 <td>{{ $user->department ?? 'N/A' }}</td>
                 <td>{{ $user->company ?? 'N/A' }}</td>
                 <td>{{ $user->student_id ?? 'N/A' }}</td>
@@ -41,4 +41,3 @@
     </table>
 </body>
 </html>
-

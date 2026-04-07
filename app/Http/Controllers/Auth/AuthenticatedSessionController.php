@@ -33,6 +33,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        if (Auth::check() && Auth::user()->isSupervisor()) {
+            return redirect()->route('supervisor.dashboard');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

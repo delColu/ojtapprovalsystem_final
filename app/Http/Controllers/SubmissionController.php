@@ -81,7 +81,10 @@ class SubmissionController extends Controller
 
     public function destroy(Submission $submission)
     {
-        if ($submission->student_id !== Auth::id() && !Auth::user()->isAdmin()) {
+        $user = Auth::user();
+        $canDeleteAsSupervisor = $user->isSupervisor() && $submission->folder?->supervisor_id === $user->id;
+
+        if ($submission->student_id !== Auth::id() && ! $user->isAdmin() && ! $canDeleteAsSupervisor) {
             abort(403);
         }
 
@@ -139,10 +142,17 @@ class SubmissionController extends Controller
     {
         $request->validate(['feedback' => 'required|string']);
 
+        $user = Auth::user();
+
+        if ($user->isSupervisor() && $submission->folder->supervisor_id !== $user->id) {
+            abort(403);
+        }
+
         $submission->update([
             'status'      => 'rejected',
             'rejected_at' => now(),
             'feedback'    => $request->feedback,
+            'supervisor_id' => $user->isSupervisor() ? $user->id : $submission->supervisor_id,
         ]);
 
         Mail::to($submission->student->email)->send(new SubmissionStatusMail($submission, 'rejected'));
@@ -156,7 +166,7 @@ class SubmissionController extends Controller
         ]);
 
         ActivityLog::create([
-            'user_id'    => Auth::id(),
+            'user_id'    => $user->id,
             'action'     => 'submission_rejected',
             'status'     => 'success',
             'details'    => "Rejected submission: {$submission->title}",
@@ -168,6 +178,16 @@ class SubmissionController extends Controller
 
     public function downloadPdf(Submission $submission)
     {
+        $user = auth()->user();
+
+        if ($user->isStudent() && $submission->student_id !== $user->id) {
+            abort(403);
+        }
+
+        if ($user->isSupervisor() && $submission->folder?->supervisor_id !== $user->id) {
+            abort(403);
+        }
+
         $pdf = Pdf::loadView('pdf.submission', compact('submission'));
         return $pdf->download("submission-{$submission->id}.pdf");
     }

@@ -3,13 +3,14 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CustomRegisterController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SupervisorController;
+use Inertia\Inertia;
 
 // Welcome page
 Route::get('/', function () {
@@ -32,6 +33,23 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// Supervisor dashboard route (protected)
+Route::get('/supervisor', [SupervisorController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('supervisor.dashboard');
+Route::get('/supervisor/tasks', [SupervisorController::class, 'tasks'])
+    ->middleware(['auth', 'verified'])
+    ->name('supervisor.tasks');
+Route::get('/supervisor/interns', [SupervisorController::class, 'interns'])
+    ->middleware(['auth', 'verified'])
+    ->name('supervisor.interns');
+Route::get('/supervisor/submissions', [SupervisorController::class, 'submissions'])
+    ->middleware(['auth', 'verified'])
+    ->name('supervisor.submissions');
+Route::get('/supervisor/reports', [SupervisorController::class, 'reports'])
+    ->middleware(['auth', 'verified'])
+    ->name('supervisor.reports');
+
 // Protected routes
 Route::middleware('auth')->group(function () {
     // Profile routes
@@ -42,7 +60,7 @@ Route::middleware('auth')->group(function () {
     // My Reports route
     Route::get('/my-reports', [ReportController::class, 'myReports'])->name('my-reports');
 
-    // Submit Reports route (MUST BE OUTSIDE submissions prefix)
+    // Submit Reports route
     Route::get('/submit-reports', [DashboardController::class, 'submitReports'])->name('submit-reports');
 
     // Submissions routes
@@ -66,6 +84,3 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports', [UserController::class, 'reports'])->name('admin.reports.index');
     });
 });
-
-// Note: Default auth routes are commented out to avoid conflicts
-// require __DIR__.'/auth.php';

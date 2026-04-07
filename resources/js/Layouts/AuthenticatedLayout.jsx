@@ -25,7 +25,9 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function AuthenticatedLayout({ header, children }) {
-    const { auth, url, component } = usePage().props;
+    const page = usePage();
+    const { auth } = page.props;
+    const { url, component } = page;
     // Extract user data safely - don't use the whole user object directly
     const user = auth?.user || {};
     const userRole = user?.role || 'student';
@@ -94,6 +96,21 @@ export default function AuthenticatedLayout({ header, children }) {
         if (component === 'Student/SubmitReports') {
             return 'Submit Report';
         }
+        if (component === 'Supervisor/Dashboard') {
+            return 'Dashboard';
+        }
+        if (component === 'Supervisor/Tasks') {
+            return 'Tasks';
+        }
+        if (component === 'Supervisor/Interns') {
+            return 'Interns';
+        }
+        if (component === 'Supervisor/Submissions') {
+            return 'Submissions';
+        }
+        if (component === 'Supervisor/Reports') {
+            return 'Reports';
+        }
         // Check for My Reports page
         if (component === 'Student/MyReports') {
             return 'My Reports';
@@ -135,11 +152,11 @@ export default function AuthenticatedLayout({ header, children }) {
                 { name: 'Folders', href: '/folders', icon: FolderIcon },
             ],
             supervisor: [
-                { name: 'Dashboard', href: route('dashboard'), icon: HomeIcon },
-                { name: 'Tasks', href: '/folders', icon: FolderIcon },
-                { name: 'Interns', href: '/interns', icon: UsersIcon },
-                { name: 'Submissions', href: '/submissions', icon: DocumentIcon },
-                { name: 'Reports', href: '/reports', icon: ChartBarIcon },
+                { name: 'Dashboard', href: route('supervisor.dashboard'), icon: HomeIcon },
+                { name: 'Tasks', href: route('supervisor.tasks'), icon: FolderIcon },
+                { name: 'Interns', href: route('supervisor.interns'), icon: UsersIcon },
+                { name: 'Submissions', href: route('supervisor.submissions'), icon: DocumentIcon },
+                { name: 'Reports', href: route('supervisor.reports'), icon: ChartBarIcon },
             ],
             dean: [
                 { name: 'Dashboard', href: route('dashboard'), icon: HomeIcon },
@@ -165,6 +182,11 @@ export default function AuthenticatedLayout({ header, children }) {
     // Helper to check if a nav item is active
     const isActive = (href) => {
         if (href === route('dashboard') && url === '/dashboard') return true;
+        if (href === route('supervisor.dashboard') && url === '/supervisor') return true;
+        if (href === route('supervisor.tasks') && url === '/supervisor/tasks') return true;
+        if (href === route('supervisor.interns') && url === '/supervisor/interns') return true;
+        if (href === route('supervisor.submissions') && url === '/supervisor/submissions') return true;
+        if (href === route('supervisor.reports') && url === '/supervisor/reports') return true;
         if (href === '/submit-reports' && (url === '/submit-reports' || component === 'Student/SubmitReports')) return true;
         if (href === '/my-reports' && (url === '/my-reports' || component === 'Student/MyReports')) return true;
         if (href === '/folders' && url === '/folders') return true;

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,16 +12,33 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            if ($user->role_id && (! $user->role || $user->isDirty('role_id'))) {
+                $user->role = Role::query()->find($user->role_id)?->name ?? $user->role;
+            }
+
+            if ($user->role && (! $user->role_id || $user->isDirty('role'))) {
+                $user->role_id = Role::query()->firstOrCreate(
+                    ['name' => $user->role]
+                )->id;
+            }
+        });
+    }
+
     protected $fillable = [
         'name',
         'email',
-        'password',
+        'role', // Direct role column
         'role_id',
+        'password',
         'department',
         'company',
         'student_id',
         'supervisor_id',
-        'is_active'
+        'is_active',
+        'email_verified_at',
     ];
 
     protected $hidden = [
@@ -36,9 +54,9 @@ class User extends Authenticatable
 
     /* Relationships */
 
-    public function role()
+    public function assignedRole(): BelongsTo
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'role_id');
     }
 
     public function submissions()
@@ -66,26 +84,34 @@ class User extends Authenticatable
         return $this->hasMany(ActivityLog::class);
     }
 
-    /* Role Checkers - FIXED VERSION */
+    /* Role Checkers - Direct role column */
 
     public function isAdmin()
     {
-        // Check if role relationship exists and role name is 'admin'
-        return $this->role && $this->role->name === 'admin';
+        return $this->hasRole('admin');
     }
 
     public function isDean()
     {
-        return $this->role && $this->role->name === 'dean';
+        return $this->hasRole('dean');
     }
 
     public function isSupervisor()
     {
-        return $this->role && $this->role->name === 'supervisor';
+        return $this->hasRole('supervisor');
     }
 
     public function isStudent()
     {
-        return $this->role && $this->role->name === 'student';
+        return $this->hasRole('student');
+    }
+
+    protected function hasRole(string $role): bool
+    {
+        if ($this->role === $role) {
+            return true;
+        }
+
+        return $this->assignedRole?->name === $role;
     }
 }

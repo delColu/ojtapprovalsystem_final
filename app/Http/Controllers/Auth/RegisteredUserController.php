@@ -1,4 +1,4 @@
-// resources/js/Pages/Auth/Register.jsx
+
 import React, { useEffect } from 'react';
 import { Link, useForm } from '@inertiajs/react';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
@@ -10,7 +10,8 @@ export default function Register() {
         password: '',
         password_confirmation: '',
         student_id: '',
-        department: '',
+        department: 'CAST',
+        company: '',
     });
 
     useEffect(() => {
@@ -30,6 +31,7 @@ export default function Register() {
         formData.append('password_confirmation', data.password_confirmation);
         formData.append('student_id', data.student_id);
         formData.append('department', data.department);
+        formData.append('company', data.company);
 
         // Try Inertia post first
         post('/register', {
@@ -116,24 +118,33 @@ export default function Register() {
 
                         <div>
                             <label htmlFor="department" className="block text-sm font-medium text-gray-700">
-                                Department (Optional)
+                                Department
                             </label>
-                            <select
+                            <input
                                 id="department"
                                 value={data.department}
-                                onChange={(e) => setData('department', e.target.value)}
+                                readOnly
                                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                            >
-                                <option value="">Select Department</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Information Technology">Information Technology</option>
-                                <option value="Software Engineering">Software Engineering</option>
-                                <option value="Data Science">Data Science</option>
-                                <option value="Multimedia Arts">Multimedia Arts</option>
-                                <option value="Arts and Sciences">Arts and Sciences</option>
-                            </select>
+                            />
                             {errors.department && (
                                 <p className="text-red-500 text-xs mt-1">{errors.department}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label htmlFor="company" className="block text-sm font-medium text-gray-700">
+                                Company Name (Optional)
+                            </label>
+                            <input
+                                id="company"
+                                type="text"
+                                value={data.company}
+                                onChange={(e) => setData('company', e.target.value)}
+                                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                placeholder="Enter company name"
+                            />
+                            {errors.company && (
+                                <p className="text-red-500 text-xs mt-1">{errors.company}</p>
                             )}
                         </div>
 

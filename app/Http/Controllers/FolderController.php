@@ -16,7 +16,13 @@ class FolderController extends Controller
      */
     public function index()
     {
-        $folders = Folder::where('supervisor_id', Auth::id())->paginate(10);
+        abort_unless(Auth::user()?->isSupervisor(), 403);
+
+        $folders = Folder::where('supervisor_id', Auth::id())
+            ->withCount('submissions')
+            ->latest()
+            ->paginate(10);
+
         return Inertia::render('Folders/Index', compact('folders'));
     }
 
@@ -25,6 +31,7 @@ class FolderController extends Controller
      */
     public function create()
     {
+        abort_unless(Auth::user()?->isSupervisor(), 403);
         return Inertia::render('Folders/Create');
     }
 
@@ -33,8 +40,18 @@ class FolderController extends Controller
      */
     public function store(Request $request)
     {
+        abort_unless(Auth::user()?->isSupervisor(), 403);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'due_date' => ['nullable', 'date'],
+        ]);
+
         $folder = Folder::create([
-            'name' => $request->name,
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'due_date' => $validated['due_date'] ?? null,
             'supervisor_id' => Auth::id(),
         ]);
 
@@ -43,14 +60,15 @@ class FolderController extends Controller
         foreach ($students as $student) {
             Notification::create([
                 'user_id' => $student->id,
+                'title' => 'New Folder Available',
                 'type' => 'folder_created',
                 'message' => "New folder '{$folder->name}' has been created by your supervisor",
-                'data' => json_encode(['folder_id' => $folder->id]),
+                'data' => ['folder_id' => $folder->id],
                 'is_read' => false,
             ]);
         }
 
-        return redirect()->back()->with('success', 'Folder created successfully!');
+        return redirect()->route('supervisor.dashboard')->with('success', 'Folder created successfully!');
     }
 
     /**
@@ -77,8 +95,16 @@ class FolderController extends Controller
     public function update(Request $request, Folder $folder)
     {
         $this->authorizeFolder($folder);
-        $folder->update($request->only('name'));
-        return redirect()->back()->with('success', 'Folder updated successfully!');
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'due_date' => ['nullable', 'date'],
+        ]);
+
+        $folder->update($validated);
+
+        return redirect()->route('supervisor.dashboard')->with('success', 'Folder updated successfully!');
     }
 
     /**
@@ -88,7 +114,7 @@ class FolderController extends Controller
     {
         $this->authorizeFolder($folder);
         $folder->delete();
-        return redirect()->back()->with('success', 'Folder deleted successfully!');
+        return redirect()->route('supervisor.dashboard')->with('success', 'Folder deleted successfully!');
     }
 
     private function authorizeFolder(Folder $folder)

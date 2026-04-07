@@ -32,6 +32,7 @@ class CustomRegisterController extends Controller
             'password'   => ['required', 'confirmed', Rules\Password::defaults()],
             'student_id' => 'nullable|string|unique:users',
             'department' => 'nullable|string|max:255',
+            'company'    => 'nullable|string|max:255',
         ]);
 
         // Ensure the student role exists
@@ -44,8 +45,8 @@ class CustomRegisterController extends Controller
             'password'   => Hash::make($request->password),
             'role_id'    => $studentRole->id,
             'student_id' => $request->student_id,
-            'department' => $request->department,
-            'company'    => 'CAST - College of Arts, Sciences and Technology',
+            'department' => $request->department ?: 'CAST',
+            'company'    => $request->company,
             'is_active'  => true,
         ]);
 
@@ -65,4 +66,3 @@ class CustomRegisterController extends Controller
         return redirect()->route('dashboard');
     }
 }
-
