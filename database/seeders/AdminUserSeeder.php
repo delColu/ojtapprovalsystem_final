@@ -19,7 +19,7 @@ class AdminUserSeeder extends Seeder
                 'role'              => 'admin',
                 'role_id'           => 1,
                 'department'        => 'Information Technology',
-                'company'           => 'OJT Approval System',
+                'company'           => 'DICT Bohol',
                 'is_active'         => true,
                 'email_verified_at' => now(),
             ]
@@ -34,7 +34,7 @@ class AdminUserSeeder extends Seeder
                 'role'              => 'admin',
                 'role_id'           => 1,
                 'department'        => 'System Administration',
-                'company'           => 'OJT Approval System',
+                'company'           => 'TaskUs Bohol',
                 'is_active'         => true,
                 'email_verified_at' => now(),
             ]

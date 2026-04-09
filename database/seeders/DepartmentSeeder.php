@@ -11,13 +11,15 @@ class DepartmentSeeder extends Seeder
     public function run(): void
     {
         $departments = [
-            ['name' => 'College of Engineering', 'company' => 'University of Technology', 'address' => 'Main Campus, Engineering Avenue, Manila'],
-            ['name' => 'College of Computer Studies', 'company' => 'University of Technology', 'address' => 'Innovation Hall, Quezon City'],
-            ['name' => 'College of Business Administration', 'company' => 'University of Technology', 'address' => 'Commerce Building, Makati City'],
-            ['name' => 'CAST', 'company' => 'OJT Partner Company', 'address' => '2nd Floor, CAST Industry Center, Pasig City'],
-            ['name' => 'CAST', 'company' => 'Tech Innovations Inc.', 'address' => '18 Pioneer Street, Mandaluyong City'],
-            ['name' => 'CAST', 'company' => 'Global Engineering Solutions', 'address' => '45 Industrial Road, Taguig City'],
-            ['name' => 'CAST', 'company' => 'Creative Solutions Agency', 'address' => '27 Media Avenue, Makati City'],
+             ['name' => 'College of Engineering', 'company' => 'DICT Bohol', 'address' => 'Tagbilaran City, Bohol'],
+            ['name' => 'College of Computer Studies', 'company' => 'BOHECO I', 'address' => 'Cabulijan, Tubigon, Bohol'],
+            ['name' => 'College of Business Administration', 'company' => 'DILG Bohol', 'address' => 'Tagbilaran City, Bohol'],
+
+            // CAST entries
+            ['name' => 'CAST', 'company' => 'IBEX Global Bohol', 'address' => 'Alturas Mall, Tagbilaran City, Bohol'],
+            ['name' => 'CAST', 'company' => 'TaskUs Bohol', 'address' => 'Tagbilaran City, Bohol'],
+            ['name' => 'CAST', 'company' => 'DICT Bohol', 'address' => 'Tagbilaran City, Bohol'],
+            ['name' => 'CAST', 'company' => 'BOHECO I', 'address' => 'Cabulijan, Tubigon, Bohol'],
         ];
 
         foreach ($departments as $entry) {

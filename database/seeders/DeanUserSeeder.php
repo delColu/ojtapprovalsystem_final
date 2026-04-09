@@ -64,3 +64,4 @@ class DeanUserSeeder extends Seeder
         $this->command->info('Dean users seeded successfully!');
     }
 }
+

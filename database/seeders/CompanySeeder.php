@@ -10,10 +10,12 @@ class CompanySeeder extends Seeder
     public function run(): void
     {
         $companies = [
-            ['name' => 'OJT Partner Company', 'address' => '2nd Floor, CAST Industry Center, Pasig City'],
-            ['name' => 'Tech Innovations Inc.', 'address' => '18 Pioneer Street, Mandaluyong City'],
-            ['name' => 'Global Engineering Solutions', 'address' => '45 Industrial Road, Taguig City'],
-            ['name' => 'Creative Solutions Agency', 'address' => '27 Media Avenue, Makati City'],
+            ['name' => 'DICT Bohol', 'address' => 'Tagbilaran City, Bohol'],
+            ['name' => 'BOHECO I', 'address' => 'Cabulijan, Tubigon, Bohol'],
+            ['name' => 'DILG Bohol', 'address' => 'Tagbilaran City, Bohol'],
+            ['name' => 'IBEX Global Bohol', 'address' => 'Alturas Mall, Tagbilaran City, Bohol'],
+            ['name' => 'TaskUs Bohol', 'address' => 'Tagbilaran City, Bohol'],
+
         ];
 
         foreach ($companies as $company) {

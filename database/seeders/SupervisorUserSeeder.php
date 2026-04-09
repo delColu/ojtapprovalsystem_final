@@ -25,7 +25,7 @@ class SupervisorUserSeeder extends Seeder
                 'role_id'           => 3,
                 'department_id'     => $castDepartment?->id,
                 'department'        => 'CAST',
-                'company'           => 'OJT Partner Company',
+                'company'           => 'DICT Bohol',
                 'is_active'         => true,
                 'email_verified_at' => now(),
             ]
@@ -42,7 +42,7 @@ class SupervisorUserSeeder extends Seeder
                 'role_id'           => 3,
                 'department_id'     => $otherDepartment?->id ?? $castDepartment?->id,
                 'department'        => $otherDepartment?->name ?? 'CAST',
-                'company'           => 'Tech Innovations Inc',
+                'company'           => 'IBEX Global Bohol',
                 'is_active'         => true,
                 'email_verified_at' => now(),
             ]

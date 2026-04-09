@@ -15,11 +15,11 @@ class StudentUserSeeder extends Seeder
         $supervisor = User::query()->where('email', 'supervisor@gmail.com')->first();
 
         $students = [
-            ['name' => 'Alice Johnson', 'student_id' => 'CAST2024001', 'email' => 'alice.johnson@student.edu', 'company' => 'Tech Innovations Inc.'],
-            ['name' => 'Bob Smith', 'student_id' => 'CAST2024002', 'email' => 'bob.smith@student.edu', 'company' => 'Tech Innovations Inc.'],
-            ['name' => 'Carol Davis', 'student_id' => 'CAST2024003', 'email' => 'carol.davis@student.edu', 'company' => 'Tech Innovations Inc.'],
-            ['name' => 'David Brown', 'student_id' => 'CAST2024004', 'email' => 'david.brown@student.edu', 'company' => 'Tech Innovations Inc.'],
-            ['name' => 'Emma Wilson', 'student_id' => 'CAST2024005', 'email' => 'emma.wilson@student.edu', 'company' => 'Tech Innovations Inc.'],
+            ['name' => 'Alice Johnson', 'student_id' => 'CAST2024001', 'email' => 'alice.johnson@student.edu', 'company' => 'BOHECO I'],
+            ['name' => 'Bob Smith', 'student_id' => 'CAST2024002', 'email' => 'bob.smith@student.edu', 'company' => 'IBEX Global Bohol'],
+            ['name' => 'Carol Davis', 'student_id' => 'CAST2024003', 'email' => 'carol.davis@student.edu', 'company' => 'DICT Bohol'],
+            ['name' => 'David Brown', 'student_id' => 'CAST2024004', 'email' => 'david.brown@student.edu', 'company' => 'DILG Bohol'],
+            ['name' => 'Emma Wilson', 'student_id' => 'CAST2024005', 'email' => 'emma.wilson@student.edu', 'company' => 'TaskUs Bohol'],
         ];
 
         foreach ($students as $student) {
