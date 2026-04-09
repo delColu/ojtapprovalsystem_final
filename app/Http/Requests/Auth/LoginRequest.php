@@ -30,6 +30,7 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            'selected_company_id' => ['nullable', 'integer', 'exists:departments,id'],
         ];
     }
 

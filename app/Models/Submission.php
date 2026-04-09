@@ -15,19 +15,28 @@ class Submission extends Model
         'title',
         'description',
         'file_path',
+        'file_name',
         'status',
         'feedback',
+        'supervisor_feedback',
+        'dean_feedback',
         'supervisor_id',
         'dean_id',
         'submitted_at',
         'approved_at',
-        'rejected_at'
+        'rejected_at',
+        'supervisor_approved_at',
+        'forwarded_to_dean_at',
+        'dean_reviewed_at',
     ];
 
     protected $casts = [
         'submitted_at' => 'datetime',
         'approved_at'  => 'datetime',
         'rejected_at'  => 'datetime',
+        'supervisor_approved_at' => 'datetime',
+        'forwarded_to_dean_at' => 'datetime',
+        'dean_reviewed_at' => 'datetime',
     ];
 
     public function student()

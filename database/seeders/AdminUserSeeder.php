@@ -11,11 +11,12 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'admin@ojt-system.com'],
+            ['email' => 'admin@gmail.com'],
             [
                 'name'              => 'System Administrator',
-                'email'             => 'admin@ojt-system.com',
-                'password'          => Hash::make('Admin@123'),
+                'email'             => 'admin@gmail.com',
+                'password'          => Hash::make('admin@123'),
+                'role'              => 'admin',
                 'role_id'           => 1,
                 'department'        => 'Information Technology',
                 'company'           => 'OJT Approval System',
@@ -30,6 +31,7 @@ class AdminUserSeeder extends Seeder
                 'name'              => 'Super Admin',
                 'email'             => 'superadmin@ojt-system.com',
                 'password'          => Hash::make('SuperAdmin@123'),
+                'role'              => 'admin',
                 'role_id'           => 1,
                 'department'        => 'System Administration',
                 'company'           => 'OJT Approval System',

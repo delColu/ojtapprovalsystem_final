@@ -11,11 +11,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1️⃣ Seed roles first
         $this->call(RolesTableSeeder::class);
 
-        // 2️⃣ Seed users by role
         $this->call([
+            CompanySeeder::class,
             AdminUserSeeder::class,
             DeanUserSeeder::class,
             DepartmentSeeder::class,
@@ -23,15 +22,11 @@ class DatabaseSeeder extends Seeder
             StudentUserSeeder::class,
         ]);
 
-
-
-        // 3️⃣ Display default passwords
         $this->command->info('All seeders completed successfully!');
         $this->command->info('Default passwords:');
-        $this->command->info('- Admin: Admin@123');
-        $this->command->info('- Dean: Dean@123');
-        $this->command->info('- Supervisor: Supervisor@123');
-        $this->command->info('- Student: Student@123');
-
+        $this->command->info('- Admin: admin@123');
+        $this->command->info('- Dean: dean@123');
+        $this->command->info('- Supervisor: supervisor@123');
+        $this->command->info('- Student: student@123');
     }
 }

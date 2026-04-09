@@ -12,6 +12,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CustomRegisterController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SupervisorController;
+use App\Http\Controllers\NotificationController;
 use Inertia\Inertia;
 
 // Welcome page
@@ -25,6 +26,7 @@ Route::post('/register', [CustomRegisterController::class, 'register']);
 
 // Custom login routes
 Route::get('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'create'])->name('login');
+Route::get('/login/company-preview', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'companyPreview'])->name('login.company-preview');
 Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store']);
 
 // Logout route
@@ -45,6 +47,9 @@ Route::get('/supervisor/tasks', [SupervisorController::class, 'tasks'])
 Route::get('/supervisor/interns', [SupervisorController::class, 'interns'])
     ->middleware(['auth', 'verified'])
     ->name('supervisor.interns');
+Route::get('/supervisor/interns/export-pdf', [SupervisorController::class, 'exportInternsPdf'])
+    ->middleware(['auth', 'verified'])
+    ->name('supervisor.interns.export-pdf');
 Route::get('/supervisor/submissions', [SupervisorController::class, 'submissions'])
     ->middleware(['auth', 'verified'])
     ->name('supervisor.submissions');
@@ -72,12 +77,23 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{submission}', [SubmissionController::class, 'destroy'])->name('submissions.destroy');
         Route::post('/{submission}/approve', [SubmissionController::class, 'approve'])->name('submissions.approve');
         Route::post('/{submission}/reject', [SubmissionController::class, 'reject'])->name('submissions.reject');
+        Route::post('/{submission}/submit-to-dean', [SubmissionController::class, 'submitToDean'])->name('submissions.submit-to-dean');
         Route::get('/{submission}/download-pdf', [SubmissionController::class, 'downloadPdf'])->name('submissions.download-pdf');
+        Route::get('/{submission}/file', [SubmissionController::class, 'viewFile'])->name('submissions.file');
+        Route::get('/{submission}/file/download', [SubmissionController::class, 'downloadFile'])->name('submissions.file.download');
         Route::get('/{submission}', [SubmissionController::class, 'show'])->name('submissions.show');
+    });
+
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead'])->name('read');
+        Route::delete('/{notification}', [NotificationController::class, 'destroy'])->name('destroy');
     });
 
     // Folders routes
     Route::resource('folders', FolderController::class);
+    Route::post('/folders/{folder}/toggle-reopen', [FolderController::class, 'toggleReopen'])->name('folders.toggle-reopen');
 
     // Dean routes
     Route::prefix('dean')->name('dean.')->group(function () {
@@ -96,6 +112,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/departments/{department}', [DeanController::class, 'destroyDepartment'])->name('departments.destroy');
         Route::get('/submissions', [DeanController::class, 'submissions'])->name('submissions.index');
         Route::get('/reports', [DeanController::class, 'reports'])->name('reports.index');
+        Route::get('/reports/download-pdf', [DeanController::class, 'downloadReportsPdf'])->name('reports.download-pdf');
     });
 
     // Admin routes

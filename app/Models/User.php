@@ -114,10 +114,21 @@ class User extends Authenticatable
 
     protected function hasRole(string $role): bool
     {
-        if ($this->role === $role) {
+        if ($this->assignedRole?->name === $role) {
             return true;
         }
 
-        return $this->assignedRole?->name === $role;
+        $roleFromId = [
+            1 => 'admin',
+            2 => 'dean',
+            3 => 'supervisor',
+            4 => 'student',
+        ][$this->role_id] ?? null;
+
+        if ($roleFromId === $role) {
+            return true;
+        }
+
+        return $this->role === $role;
     }
 }

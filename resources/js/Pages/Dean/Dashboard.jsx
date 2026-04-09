@@ -28,7 +28,7 @@ export default function DeanDashboard({ stats, submissionOverview, interns, depa
         <AuthenticatedLayout>
             <Head title="Dean Dashboard" />
 
-            <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
+            <div className="space-y-8 bg-[#0077b6] px-4 py-6 sm:px-6 lg:px-8">
                 <PageIntro
                     eyebrow="Overview"
                     title="Dean Dashboard"
@@ -42,13 +42,14 @@ export default function DeanDashboard({ stats, submissionOverview, interns, depa
                     <StatCard label="Rejected" value={stats.rejected} tone="red" caption="Needs revision" />
                 </div>
 
-                <div className="grid gap-6 xl:grid-cols-[1.4fr,1fr]">
+                <div className="grid items-start gap-6 xl:grid-cols-[1.4fr,1fr]">
                     <Panel
                         title="Submission Overview"
                         description="Current semester summary"
                         action={<ActionLink href={route('dean.submissions.index')}>Review all submissions</ActionLink>}
+                        className="pb-0"
                     >
-                        <div className="space-y-5">
+                        <div className="space-y-3">
                             <ProgressRow
                                 label="Approval Rate"
                                 rate={submissionOverview.approval_rate}
@@ -69,7 +70,7 @@ export default function DeanDashboard({ stats, submissionOverview, interns, depa
                             />
                             <Link
                                 href={route('dean.submissions.index')}
-                                className="inline-flex w-full items-center justify-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+                                className="inline-flex w-full items-center justify-center rounded-2xl bg-[#0077b6] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#005f8c]"
                             >
                                 Review All Submissions
                             </Link>
@@ -80,16 +81,20 @@ export default function DeanDashboard({ stats, submissionOverview, interns, depa
                         title="Interns"
                         description="Active this semester"
                         action={<ActionLink href={route('dean.interns.index')}>View all</ActionLink>}
+                        className="pb-0"
                     >
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             {interns.length === 0 ? (
                                 <p className="text-sm text-gray-500">No interns assigned yet.</p>
                             ) : (
                                 interns.map((intern) => (
-                                    <div key={intern.id} className="flex items-center justify-between rounded-2xl border border-gray-100 px-4 py-3">
+                                    <div
+                                        key={intern.id}
+                                        className="flex items-center justify-between rounded-2xl border border-blue-200/70 bg-gradient-to-r from-blue-50 via-white to-sky-50 px-4 py-2.5 shadow-sm ring-1 ring-blue-100/70 transition duration-300 hover:border-blue-300 hover:shadow-[0_14px_30px_-22px_rgba(0,119,182,0.45)]"
+                                    >
                                         <div>
                                             <p className="font-semibold text-gray-900">{intern.name}</p>
-                                            <p className="text-sm text-gray-500">{intern.department || 'Unassigned department'}</p>
+                                            <p className="text-sm text-gray-600">{intern.department || 'Unassigned department'}</p>
                                         </div>
                                         <StatusBadge status={intern.status} />
                                     </div>
@@ -99,7 +104,11 @@ export default function DeanDashboard({ stats, submissionOverview, interns, depa
                     </Panel>
                 </div>
 
-                <Panel title="Department Summary" description="Submission status by department this semester">
+                <Panel
+                    title="Department Summary"
+                    description="Submission status by department this semester"
+                    action={<ActionLink href={route('dean.departments.index')}>View all</ActionLink>}
+                >
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead>
@@ -128,7 +137,7 @@ export default function DeanDashboard({ stats, submissionOverview, interns, depa
                                         <td className="py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="h-2 w-24 rounded-full bg-gray-100">
-                                                    <div className="h-2 rounded-full bg-green-500" style={{ width: `${Math.min(department.approval_rate, 100)}%` }} />
+                                                    <div className="h-2 rounded-full bg-[#0077b6]" style={{ width: `${Math.min(department.approval_rate, 100)}%` }} />
                                                 </div>
                                                 <span className="text-sm font-semibold text-gray-700">{department.approval_rate}%</span>
                                             </div>

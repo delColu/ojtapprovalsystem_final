@@ -40,7 +40,7 @@ class AdminController extends Controller
 
         $status = (string) $request->string('status');
         $department = (string) $request->string('department');
-        $priority = (string) $request->string('priority');
+        $company = (string) $request->string('company');
 
         $tasks = Folder::query()
             ->with(['supervisor.departmentRecord', 'submissions'])
@@ -49,16 +49,17 @@ class AdminController extends Controller
             ->map(fn (Folder $task) => $this->mapTask($task))
             ->when($status !== '', fn ($collection) => $collection->where('status', $this->normalizeFilterStatus($status)))
             ->when($department !== '', fn ($collection) => $collection->where('department', $department))
-            ->when($priority !== '', fn ($collection) => $collection->where('priority', $priority))
+            ->when($company !== '', fn ($collection) => $collection->where('company', $company))
             ->values();
 
         return Inertia::render('Admin/Tasks', [
             'tasks' => $tasks,
             'departments' => $this->departmentNames(),
+            'companies' => $this->companyNames(),
             'filters' => [
                 'status' => $status,
                 'department' => $department,
-                'priority' => $priority,
+                'company' => $company,
             ],
             'supervisors' => User::query()
                 ->where('role', 'supervisor')
@@ -170,16 +171,6 @@ class AdminController extends Controller
             $status = 'In Progress';
         }
 
-        $priority = 'Low';
-
-        if ($task->due_date) {
-            if ($task->due_date->isPast() || $task->due_date->diffInDays(now()) <= 2) {
-                $priority = 'High';
-            } elseif ($task->due_date->diffInDays(now()) <= 5) {
-                $priority = 'Medium';
-            }
-        }
-
         return [
             'id' => $task->id,
             'title' => $task->name,
@@ -187,7 +178,6 @@ class AdminController extends Controller
             'assigned_to' => $task->supervisor?->name ?? 'Unassigned',
             'company' => $task->supervisor?->departmentRecord?->company ?? $task->supervisor?->company ?? 'N/A',
             'department' => $task->supervisor?->departmentRecord?->name ?? $task->supervisor?->department ?? 'N/A',
-            'priority' => $priority,
             'due_date' => optional($task->due_date)?->format('M d, Y') ?? 'No due date',
             'due_date_raw' => optional($task->due_date)?->format('Y-m-d'),
             'status' => $status,
@@ -201,6 +191,18 @@ class AdminController extends Controller
         return Department::query()
             ->orderBy('name')
             ->pluck('name')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function companyNames(): array
+    {
+        return Department::query()
+            ->whereNotNull('company')
+            ->orderBy('company')
+            ->pluck('company')
+            ->unique()
             ->values()
             ->all();
     }

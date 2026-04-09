@@ -12,25 +12,31 @@ const emptyUser = {
     is_active: true,
 };
 
-export default function Users({ users, roles, departments }) {
+export default function Users({ users, roles, departments, companies = [] }) {
     const [roleFilter, setRoleFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('');
+    const [companyFilter, setCompanyFilter] = useState('');
     const [search, setSearch] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const form = useForm(emptyUser);
+    const departmentOptions = useMemo(
+        () => departments.map((department) => ({ value: department.name, label: department.name })),
+        [departments],
+    );
 
     const filteredUsers = useMemo(() => {
         return users.filter((user) => {
             const matchesSearch = !search || [user.name, user.email, user.department, user.company].some((value) => String(value || '').toLowerCase().includes(search.toLowerCase()));
             const matchesRole = !roleFilter || user.role === roleFilter;
             const matchesStatus = !statusFilter || user.status.toLowerCase() === statusFilter;
-            const matchesDepartment = !departmentFilter || String(user.department_id) === departmentFilter;
+            const matchesDepartment = !departmentFilter || user.department === departmentFilter;
+            const matchesCompany = !companyFilter || user.company === companyFilter;
 
-            return matchesSearch && matchesRole && matchesStatus && matchesDepartment;
+            return matchesSearch && matchesRole && matchesStatus && matchesDepartment && matchesCompany;
         });
-    }, [users, search, roleFilter, statusFilter, departmentFilter]);
+    }, [users, search, roleFilter, statusFilter, departmentFilter, companyFilter]);
 
     const openCreate = () => {
         setEditingUser(null);
@@ -99,9 +105,10 @@ export default function Users({ users, roles, departments }) {
                 <Panel title="All Users" description={`${filteredUsers.length} user${filteredUsers.length === 1 ? '' : 's'} found`}>
                     <div className="mb-5 flex flex-col gap-3 xl:flex-row">
                         <SearchField value={search} onChange={setSearch} placeholder="Search users..." />
-                        <SelectField value={roleFilter} onChange={setRoleFilter} options={roles.map((role) => ({ value: role.name, label: role.name }))} placeholder="All Roles" />
-                        <SelectField value={statusFilter} onChange={setStatusFilter} options={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} placeholder="All Statuses" />
-                        <SelectField value={departmentFilter} onChange={setDepartmentFilter} options={departments} placeholder="Department / Company" />
+                        <SelectField value={roleFilter} onChange={setRoleFilter} options={roles.map((role) => ({ value: role.name, label: role.name.charAt(0).toUpperCase() + role.name.slice(1) }))} placeholder="All Roles" />
+                        <SelectField value={statusFilter} onChange={setStatusFilter} options={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} placeholder="All Status" />
+                        <SelectField value={departmentFilter} onChange={setDepartmentFilter} options={departmentOptions} placeholder="Department" />
+                        <SelectField value={companyFilter} onChange={setCompanyFilter} options={companies.map((company) => ({ value: company, label: company }))} placeholder="Company" />
                     </div>
 
                     {filteredUsers.length === 0 ? (
@@ -111,28 +118,30 @@ export default function Users({ users, roles, departments }) {
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead>
                                     <tr className="text-left text-xs uppercase tracking-wide text-gray-500">
-                                        <th className="pb-3 pr-4 font-semibold">User</th>
-                                        <th className="pb-3 pr-4 font-semibold">Role</th>
-                                        <th className="pb-3 pr-4 font-semibold">Department / Company</th>
-                                        <th className="pb-3 pr-4 font-semibold">Tasks</th>
-                                        <th className="pb-3 pr-4 font-semibold">Joined</th>
-                                        <th className="pb-3 pr-4 font-semibold">Status</th>
-                                        <th className="pb-3 font-semibold text-right">Actions</th>
+                                        <th className="px-3 pb-3 font-semibold">User</th>
+                                        <th className="px-3 pb-3 font-semibold">Role</th>
+                                        <th className="px-3 pb-3 font-semibold">Dept / Company</th>
+                                        <th className="px-3 pb-3 font-semibold">Tasks</th>
+                                        <th className="px-3 pb-3 font-semibold">Joined</th>
+                                        <th className="px-3 pb-3 font-semibold">Status</th>
+                                        <th className="px-3 pb-3 font-semibold text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {filteredUsers.map((user) => (
                                         <tr key={user.id}>
-                                            <td className="py-4 pr-4">
+                                            <td className="px-3 py-4 whitespace-nowrap">
                                                 <p className="font-semibold text-gray-900">{user.name}</p>
                                                 <p className="text-xs text-gray-500">{user.email}</p>
                                             </td>
-                                            <td className="py-4 pr-4 text-sm capitalize text-gray-600">{user.role}</td>
-                                            <td className="py-4 pr-4 text-sm text-gray-600">{user.department || user.company || 'N/A'}</td>
-                                            <td className="py-4 pr-4 text-sm text-gray-600">{user.tasks}</td>
-                                            <td className="py-4 pr-4 text-sm text-gray-600">{user.joined}</td>
-                                            <td className="py-4 pr-4"><StatusBadge status={user.status} /></td>
-                                            <td className="py-4">
+                                            <td className="px-3 py-4 text-sm capitalize text-gray-600 whitespace-nowrap">{user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}</td>
+                                            <td className="px-3 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                                {user.department || 'N/A'}{user.company ? ` / ${user.company}` : ''}
+                                            </td>
+                                            <td className="px-3 py-4 text-sm text-gray-600 whitespace-nowrap text-center">{user.tasks}</td>
+                                            <td className="px-3 py-4 text-sm text-gray-600 whitespace-nowrap">{user.joined}</td>
+                                            <td className="px-3 py-4 whitespace-nowrap"><StatusBadge status={user.status} /></td>
+                                            <td className="px-3 py-4 whitespace-nowrap">
                                                 <div className="flex justify-end gap-2">
                                                     <SecondaryAction onClick={() => openEdit(user)} className="px-3 py-2">Edit</SecondaryAction>
                                                     <button onClick={() => destroyUser(user)} className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100">Delete</button>
@@ -173,10 +182,12 @@ export default function Users({ users, roles, departments }) {
                             </select>
                         </label>
                     </div>
-                    <label className="space-y-2 text-sm font-medium text-gray-700">
-                        <span>Student ID</span>
-                        <input value={form.data.student_id} onChange={(event) => form.setData('student_id', event.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100" />
-                    </label>
+                    {roles.find((role) => String(role.id) === String(form.data.role_id))?.name === 'student' && (
+                        <label className="space-y-2 text-sm font-medium text-gray-700">
+                            <span>Student ID</span>
+                            <input value={form.data.student_id} onChange={(event) => form.setData('student_id', event.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100" />
+                        </label>
+                    )}
                     <label className="flex items-center gap-3 rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-700">
                         <input type="checkbox" checked={form.data.is_active} onChange={(event) => form.setData('is_active', event.target.checked)} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                         Mark this user as active

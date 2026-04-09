@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -119,7 +120,7 @@ class DeanController extends Controller
                     'email' => $supervisor->email,
                     'department_id' => $supervisor->department_id,
                     'department' => $supervisor->departmentRecord?->name ?? $supervisor->department,
-                    'company' => $supervisor->departmentRecord?->company ?? $supervisor->company,
+                    'company' => $supervisor->company ?? $supervisor->departmentRecord?->company,
                     'interns_count' => $internsCount,
                     'approved_count' => $approved,
                     'pending_count' => $pending,
@@ -203,6 +204,7 @@ class DeanController extends Controller
                     'id' => $department->id,
                     'name' => $department->name,
                     'company' => $department->company,
+                    'address' => $department->address,
                     'description' => $department->description,
                     'is_active' => $department->is_active,
                     'interns_count' => User::query()->where('role', 'student')->where('department_id', $department->id)->count(),
@@ -231,6 +233,36 @@ class DeanController extends Controller
     public function reports(Request $request): Response
     {
         return $this->submissionPage($request, 'Dean/Reports', false);
+    }
+
+    public function downloadReportsPdf(Request $request)
+    {
+        $departmentIds = $this->departmentIds($this->deanUser());
+        $search = trim((string) $request->string('search'));
+        $status = (string) $request->string('status');
+        $department = (string) $request->string('department');
+
+        $submissions = $this->submissionScope($departmentIds)
+            ->with(['student.departmentRecord', 'folder', 'supervisor', 'dean'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($nestedQuery) use ($search) {
+                    $nestedQuery
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhereHas('student', fn ($studentQuery) => $studentQuery->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('folder', fn ($folderQuery) => $folderQuery->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->when($status !== '', fn ($query) => $query->where('status', $status))
+            ->when($department !== '', fn ($query) => $query->whereHas('student', fn ($studentQuery) => $studentQuery->where('department_id', $department)))
+            ->latest('submitted_at')
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.dean-reports', [
+            'submissions' => $submissions,
+            'dean' => $this->deanUser(),
+        ]);
+
+        return $pdf->download('dean-reports.pdf');
     }
 
     public function storeSupervisor(Request $request): RedirectResponse
@@ -374,6 +406,7 @@ class DeanController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'company' => ['nullable', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -381,6 +414,7 @@ class DeanController extends Controller
         Department::create([
             'name' => $data['name'],
             'company' => $data['company'] ?? null,
+            'address' => $data['address'] ?? null,
             'description' => $data['description'] ?? null,
             'dean_id' => $dean->id,
             'is_active' => $request->boolean('is_active', true),
@@ -395,6 +429,7 @@ class DeanController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'company' => ['nullable', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -402,6 +437,7 @@ class DeanController extends Controller
         $department->update([
             'name' => $data['name'],
             'company' => $data['company'] ?? null,
+            'address' => $data['address'] ?? null,
             'description' => $data['description'] ?? null,
             'is_active' => $request->boolean('is_active', true),
         ]);
@@ -453,11 +489,21 @@ class DeanController extends Controller
                 $payload = [
                     'id' => $submission->id,
                     'intern_name' => $submission->student?->name,
+                    'intern_email' => $submission->student?->email,
                     'report_title' => $submission->title,
+                    'description' => $submission->description,
                     'folder_name' => $submission->folder?->name ?? 'No Folder',
                     'supervisor_name' => $submission->supervisor?->name ?? 'Unassigned',
                     'date' => optional($submission->submitted_at ?? $submission->created_at)?->format('M d, Y'),
                     'status' => $submission->status,
+                    'file_path' => $submission->file_path,
+                    'file_name' => $submission->file_name ?: ($submission->file_path ? basename($submission->file_path) : null),
+                    'feedback' => $submission->feedback,
+                    'supervisor_feedback' => $submission->supervisor_feedback,
+                    'dean_feedback' => $submission->dean_feedback,
+                    'supervisor_approved_at' => optional($submission->supervisor_approved_at)->format('M d, Y h:i A'),
+                    'forwarded_to_dean_at' => optional($submission->forwarded_to_dean_at)->format('M d, Y h:i A'),
+                    'dean_reviewed_at' => optional($submission->dean_reviewed_at)->format('M d, Y h:i A'),
                 ];
 
                 if ($includeDepartment) {
@@ -492,10 +538,24 @@ class DeanController extends Controller
         $ids = Department::query()->where('dean_id', $dean->id)->pluck('id')->all();
 
         if ($ids === [] && filled($dean->department)) {
-            $ids = Department::query()->where('name', $dean->department)->pluck('id')->all();
+            if ($this->isCastDean($dean)) {
+                $ids = Department::query()->where('name', 'CAST')->pluck('id')->all();
+            } else {
+                $ids = Department::query()->where('name', $dean->department)->pluck('id')->all();
+            }
         }
 
         return $ids;
+    }
+
+    private function isCastDean(User $dean): bool
+    {
+        $department = strtolower((string) $dean->department);
+
+        return str_contains($department, 'arts')
+            || str_contains($department, 'sciences')
+            || str_contains($department, 'technology')
+            || $department === 'cast';
     }
 
     private function submissionScope(array $departmentIds)
@@ -540,6 +600,7 @@ class DeanController extends Controller
             ->whereIn('id', $departmentIds)
             ->orderBy('name')
             ->get(['id', 'name'])
+            ->unique('name')
             ->map(fn (Department $department) => [
                 'id' => $department->id,
                 'name' => $department->name,

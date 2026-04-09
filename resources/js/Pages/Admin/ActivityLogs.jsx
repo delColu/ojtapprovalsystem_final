@@ -31,7 +31,7 @@ export default function ActivityLogs({ logs, users, filters }) {
                     <div className="mb-5 flex flex-col gap-3 xl:flex-row">
                         <SearchField value={action} onChange={(value) => { setAction(value); applyFilters({ action: value }); }} placeholder="All actions" />
                         <SelectField value={userId} onChange={(value) => { setUserId(value); applyFilters({ userId: value }); }} options={users} placeholder="All users" />
-                        <SelectField value={status} onChange={(value) => { setStatus(value); applyFilters({ status: value }); }} options={[{ value: 'success', label: 'Success' }, { value: 'failed', label: 'Failed' }]} placeholder="All statuses" />
+                        <SelectField value={status} onChange={(value) => { setStatus(value); applyFilters({ status: value }); }} options={[{ value: 'success', label: 'Success' }, { value: 'failed', label: 'Failed' }]} placeholder="All status" />
                         <input type="date" value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); applyFilters({ dateFrom: event.target.value }); }} className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100" />
                         <input type="date" value={dateTo} onChange={(event) => { setDateTo(event.target.value); applyFilters({ dateTo: event.target.value }); }} className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100" />
                     </div>

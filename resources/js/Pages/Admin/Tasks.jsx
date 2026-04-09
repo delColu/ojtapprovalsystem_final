@@ -10,16 +10,16 @@ const emptyTask = {
     supervisor_id: '',
 };
 
-export default function Tasks({ tasks, departments, filters, supervisors }) {
+export default function Tasks({ tasks, departments, companies, filters, supervisors }) {
     const [status, setStatus] = useState(filters.status || '');
     const [department, setDepartment] = useState(filters.department || '');
-    const [priority, setPriority] = useState(filters.priority || '');
+    const [company, setCompany] = useState(filters.company || '');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const form = useForm(emptyTask);
 
-    const applyFilters = (nextStatus = status, nextDepartment = department, nextPriority = priority) => {
-        router.get(route('admin.tasks.index'), { status: nextStatus, department: nextDepartment, priority: nextPriority }, { preserveState: true, replace: true });
+    const applyFilters = (nextStatus = status, nextDepartment = department, nextCompany = company) => {
+        router.get(route('admin.tasks.index'), { status: nextStatus, department: nextDepartment, company: nextCompany }, { preserveState: true, replace: true });
     };
 
     const openCreate = () => {
@@ -79,20 +79,16 @@ export default function Tasks({ tasks, departments, filters, supervisors }) {
                     action={<PrimaryAction onClick={openCreate}>New Task</PrimaryAction>}
                 />
 
-                <Panel title="All Tasks" description="Filter tasks by status, department, and priority">
+                <Panel title="All Tasks" description="Filter tasks by status, department, and company">
                     <div className="mb-5 flex flex-col gap-3 xl:flex-row">
-                        <SelectField value={status} onChange={(value) => { setStatus(value); applyFilters(value, department, priority); }} options={[
+                        <SelectField value={status} onChange={(value) => { setStatus(value); applyFilters(value, department, company); }} options={[
                             { value: 'completed', label: 'Completed' },
                             { value: 'in_progress', label: 'In Progress' },
                             { value: 'pending', label: 'Pending' },
                             { value: 'overdue', label: 'Overdue' },
                         ]} placeholder="All" />
-                        <SelectField value={department} onChange={(value) => { setDepartment(value); applyFilters(status, value, priority); }} options={departments.map((name) => ({ value: name, label: name }))} placeholder="Department" />
-                        <SelectField value={priority} onChange={(value) => { setPriority(value); applyFilters(status, department, value); }} options={[
-                            { value: 'High', label: 'High' },
-                            { value: 'Medium', label: 'Medium' },
-                            { value: 'Low', label: 'Low' },
-                        ]} placeholder="Priority" />
+                        <SelectField value={department} onChange={(value) => { setDepartment(value); applyFilters(status, value, company); }} options={departments.map((name) => ({ value: name, label: name }))} placeholder="Department" />
+                        <SelectField value={company} onChange={(value) => { setCompany(value); applyFilters(status, department, value); }} options={companies.map((name) => ({ value: name, label: name }))} placeholder="Company" />
                     </div>
 
                     {tasks.length === 0 ? (
@@ -105,7 +101,6 @@ export default function Tasks({ tasks, departments, filters, supervisors }) {
                                         <th className="pb-3 pr-4 font-semibold">Task Title</th>
                                         <th className="pb-3 pr-4 font-semibold">Assigned To</th>
                                         <th className="pb-3 pr-4 font-semibold">Company</th>
-                                        <th className="pb-3 pr-4 font-semibold">Priority</th>
                                         <th className="pb-3 pr-4 font-semibold">Due Date</th>
                                         <th className="pb-3 pr-4 font-semibold">Status</th>
                                         <th className="pb-3 font-semibold text-right">Actions</th>
@@ -120,7 +115,6 @@ export default function Tasks({ tasks, departments, filters, supervisors }) {
                                             </td>
                                             <td className="py-4 pr-4 text-sm text-gray-600">{task.assigned_to}</td>
                                             <td className="py-4 pr-4 text-sm text-gray-600">{task.company}</td>
-                                            <td className="py-4 pr-4 text-sm text-gray-600">{task.priority}</td>
                                             <td className="py-4 pr-4 text-sm text-gray-600">{task.due_date}</td>
                                             <td className="py-4 pr-4"><StatusBadge status={task.status} /></td>
                                             <td className="py-4">

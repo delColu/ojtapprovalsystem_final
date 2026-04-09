@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Str;
 use App\Models\Submission;
 use Inertia\Inertia;
 
@@ -48,13 +47,25 @@ class UserController extends Controller
             ->values();
 
         $roles = Role::query()->orderBy('name')->get(['id', 'name']);
-        $departments = Department::query()->orderBy('name')->get(['id', 'name']);
+        $departments = Department::query()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->unique('name')
+            ->values();
+        $companies = User::query()
+            ->whereNotNull('company')
+            ->orderBy('company')
+            ->pluck('company')
+            ->unique()
+            ->values();
 
-        return inertia('Admin/Users', compact('users', 'roles', 'departments'));
+        return inertia('Admin/Users', compact('users', 'roles', 'departments', 'companies'));
     }
 
     public function store(Request $request)
     {
+        $role = Role::query()->findOrFail($request->role_id);
+
         $request->validate([
             'name'       => 'required|string|max:255',
             'email'      => 'required|email|unique:users',
@@ -62,11 +73,9 @@ class UserController extends Controller
             'department_id' => 'nullable|exists:departments,id',
             'department' => 'nullable|string',
             'company'    => 'nullable|string',
-            'student_id' => 'nullable|unique:users',
+            'student_id' => $role->name === 'student' ? 'required|unique:users' : 'nullable|unique:users',
             'is_active' => 'nullable|boolean',
         ]);
-
-        $role = Role::query()->findOrFail($request->role_id);
         $department = $request->filled('department_id')
             ? Department::query()->find($request->department_id)
             : null;
@@ -74,7 +83,7 @@ class UserController extends Controller
         $user = User::create([
             'name'       => $request->name,
             'email'      => $request->email,
-            'password'   => Hash::make(Str::random(16)),
+            'password'   => Hash::make('Welcome123!'),
             'role_id'    => $request->role_id,
             'role'       => $role->name,
             'department_id' => $department?->id,
@@ -92,19 +101,23 @@ class UserController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->back()->with('success', 'User created successfully!');
+        return redirect()->back()->with('success', 'User created successfully. Temporary password: Welcome123!');
     }
 
     public function update(Request $request, User $user)
     {
+        $role = Role::query()->findOrFail($request->role_id);
+
         $request->validate([
             'name'      => 'required|string|max:255',
             'email'     => 'required|email|unique:users,email,' . $user->id,
             'role_id'   => 'required|exists:roles,id',
             'department_id' => 'nullable|exists:departments,id',
+            'student_id' => $role->name === 'student'
+                ? 'required|unique:users,student_id,' . $user->id
+                : 'nullable|unique:users,student_id,' . $user->id,
             'is_active' => 'boolean',
         ]);
-        $role = Role::query()->findOrFail($request->role_id);
         $department = $request->filled('department_id')
             ? Department::query()->find($request->department_id)
             : null;
@@ -117,6 +130,7 @@ class UserController extends Controller
             'department_id' => $department?->id,
             'department' => $department?->name ?? $user->department,
             'company' => $department?->company ?? $user->company,
+            'student_id' => $role->name === 'student' ? $request->student_id : null,
             'is_active' => $request->boolean('is_active'),
         ]);
 

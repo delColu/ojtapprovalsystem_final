@@ -14,31 +14,32 @@ class DeanUserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Dean for College of Engineering
-        User::updateOrCreate(
-            ['email' => 'dean.engineering@ojt-system.com'],
-            [
-                'name' => 'Dr. Robert Martinez',
-                'email' => 'dean.engineering@ojt-system.com',
-                'password' => Hash::make('Dean@123'),
-                'role_id' => 2, // Dean role ID
-                'department' => 'College of Engineering',
-                'company' => 'University of Technology',
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]
-        );
+      User::updateOrCreate(
+    ['email' => 'dean@gmail.com'],
+    [
+        'name' => 'Dr. Robert Martinez',
+        'email' => 'dean@gmail.com',
+        'password' => Hash::make('dean@123'),
+        'role_id' => 2,
+        'role' => 'dean',
+        'department' => 'CAST',
+        'company' => 'Mater Dei College',
+        'is_active' => true,
+        'email_verified_at' => now(),
+    ]
+);
 
         // Create Dean for College of Computer Studies
         User::updateOrCreate(
-            ['email' => 'dean.computing@ojt-system.com'],
+            ['email' => 'deancomputing@gmail.com'],
             [
                 'name' => 'Dr. Sarah Johnson',
-                'email' => 'dean.computing@ojt-system.com',
+                'email' => 'deancomputing@gmail.com',
                 'password' => Hash::make('Dean@123'),
                 'role_id' => 2, // Dean role ID
+                'role' => 'dean',
                 'department' => 'College of Computer Studies',
-                'company' => 'University of Technology',
+                'company' => 'Mater Dei College',
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]
@@ -46,14 +47,15 @@ class DeanUserSeeder extends Seeder
 
         // Create Dean for College of Business
         User::updateOrCreate(
-            ['email' => 'dean.business@ojt-system.com'],
+            ['email' => 'deanbusiness@gmail.com'],
             [
                 'name' => 'Prof. Michael Chen',
-                'email' => 'dean.business@ojt-system.com',
+                'email' => 'deanbusiness@gmail.com',
                 'password' => Hash::make('Dean@123'),
                 'role_id' => 2, // Dean role ID
+                'role' => 'dean',
                 'department' => 'College of Business Administration',
-                'company' => 'University of Technology',
+                'company' => 'Mater Dei College',
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]

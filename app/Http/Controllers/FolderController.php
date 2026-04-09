@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 class FolderController extends Controller
 {
@@ -16,9 +17,40 @@ class FolderController extends Controller
      */
     public function index()
     {
-        abort_unless(Auth::user()?->isSupervisor(), 403);
+        $user = Auth::user();
 
-        $folders = Folder::where('supervisor_id', Auth::id())
+        abort_unless($user?->isSupervisor() || $user?->isStudent(), 403);
+
+        if ($user->isStudent()) {
+            $folders = Folder::query()
+                ->where(function ($query) {
+                    $query->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                })
+                ->orWhere(function ($query) {
+                    $query->whereNotNull('due_date')
+                        ->whereDate('due_date', '<', today())
+                        ->where('is_reopened', true);
+                })
+                ->with(['supervisor'])
+                ->latest()
+                ->get()
+                ->map(function (Folder $folder) {
+                    return [
+                        'id' => $folder->id,
+                        'name' => $folder->name,
+                        'description' => $folder->description,
+                        'due_date' => optional($folder->due_date)?->format('Y-m-d'),
+                        'supervisor_name' => $folder->supervisor?->name ?? 'Unknown',
+                        'is_reopened' => $folder->is_reopened,
+                    ];
+                })
+                ->values();
+
+            return Inertia::render('Student/Folders', compact('folders'));
+        }
+
+        $folders = Folder::where('supervisor_id', $user->id)
             ->withCount('submissions')
             ->latest()
             ->paginate(10);
@@ -53,6 +85,8 @@ class FolderController extends Controller
             'description' => $validated['description'] ?? null,
             'due_date' => $validated['due_date'] ?? null,
             'supervisor_id' => Auth::id(),
+            'is_reopened' => false,
+            'reopened_at' => null,
         ]);
 
         $students = User::where('role', 'student')->get();
@@ -68,7 +102,7 @@ class FolderController extends Controller
             ]);
         }
 
-        return redirect()->route('supervisor.dashboard')->with('success', 'Folder created successfully!');
+        return redirect()->route('supervisor.tasks')->with('success', 'Folder created successfully!');
     }
 
     /**
@@ -102,9 +136,73 @@ class FolderController extends Controller
             'due_date' => ['nullable', 'date'],
         ]);
 
-        $folder->update($validated);
+        $originalName = $folder->name;
+        $oldDueDate = optional($folder->due_date)?->format('Y-m-d');
+        $newDueDate = $validated['due_date'] ?? null;
 
-        return redirect()->route('supervisor.dashboard')->with('success', 'Folder updated successfully!');
+        $payload = $validated;
+
+        // Once a reopened folder gets a new deadline, it goes back to normal deadline-based closing.
+        if ($folder->is_reopened && $newDueDate !== $oldDueDate && $newDueDate !== null) {
+            $parsedDueDate = Carbon::parse($newDueDate);
+
+            if ($parsedDueDate->greaterThanOrEqualTo(today())) {
+                $payload['is_reopened'] = false;
+                $payload['reopened_at'] = null;
+            }
+        }
+
+        $folder->update($payload);
+
+        $students = User::where('role', 'student')->get();
+
+        foreach ($students as $student) {
+            Notification::create([
+                'user_id' => $student->id,
+                'title' => 'Folder Updated',
+                'type' => 'folder_updated',
+                'message' => "Folder '{$originalName}' was updated by your supervisor.",
+                'data' => [
+                    'folder_id' => $folder->id,
+                    'folder_name' => $folder->name,
+                ],
+                'is_read' => false,
+            ]);
+        }
+
+        return redirect()->route('supervisor.tasks')->with('success', 'Folder updated successfully!');
+    }
+
+    public function toggleReopen(Folder $folder)
+    {
+        $this->authorizeFolder($folder);
+
+        abort_if(! $folder->due_date || ! $folder->due_date->lt(today()), 422, 'Only closed folders can be reopened.');
+
+        $folder->update([
+            'is_reopened' => true,
+            'reopened_at' => now(),
+        ]);
+
+        $students = User::where('role', 'student')->get();
+        $title = 'Folder Reopened';
+        $message = "Folder '{$folder->name}' was reopened by your supervisor and is available for submission again.";
+
+        foreach ($students as $student) {
+            Notification::create([
+                'user_id' => $student->id,
+                'title' => $title,
+                'type' => 'folder_reopened',
+                'message' => $message,
+                'data' => [
+                    'folder_id' => $folder->id,
+                    'folder_name' => $folder->name,
+                ],
+                'is_read' => false,
+            ]);
+        }
+
+        return redirect()->route('supervisor.tasks')->with('success', 'Folder reopened successfully!');
     }
 
     /**
@@ -113,8 +211,29 @@ class FolderController extends Controller
     public function destroy(Folder $folder)
     {
         $this->authorizeFolder($folder);
+
+        $folderName = $folder->name;
+        $folderId = $folder->id;
+
+        $students = User::where('role', 'student')->get();
+
+        foreach ($students as $student) {
+            Notification::create([
+                'user_id' => $student->id,
+                'title' => 'Folder Deleted',
+                'type' => 'folder_deleted',
+                'message' => "Folder '{$folderName}' was deleted by your supervisor.",
+                'data' => [
+                    'folder_id' => $folderId,
+                    'folder_name' => $folderName,
+                ],
+                'is_read' => false,
+            ]);
+        }
+
         $folder->delete();
-        return redirect()->route('supervisor.dashboard')->with('success', 'Folder deleted successfully!');
+
+        return redirect()->route('supervisor.tasks')->with('success', 'Folder deleted successfully!');
     }
 
     private function authorizeFolder(Folder $folder)

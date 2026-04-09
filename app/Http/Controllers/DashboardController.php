@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Submission;
 use App\Models\Folder;
 use App\Models\User;
@@ -23,7 +24,7 @@ class DashboardController extends Controller
             ];
 
             $recentReports = Submission::where('student_id', $user->id)
-                ->with('folder')
+                ->with(['folder', 'supervisor', 'dean'])
                 ->latest()
                 ->take(5)
                 ->get()
@@ -37,11 +38,23 @@ class DashboardController extends Controller
                         'created_at' => $submission->created_at->format('Y-m-d'),
                         'file_path' => $submission->file_path,
                         'feedback' => $submission->feedback,
+                        'supervisor_name' => $submission->supervisor?->name,
+                        'dean_name' => $submission->dean?->name,
+                        'supervisor_approved_at' => optional($submission->supervisor_approved_at)->format('Y-m-d H:i'),
+                        'forwarded_to_dean_at' => optional($submission->forwarded_to_dean_at)->format('Y-m-d H:i'),
+                        'dean_reviewed_at' => optional($submission->dean_reviewed_at)->format('Y-m-d H:i'),
                     ];
                 });
 
-            $availableFolders = Folder::whereDoesntHave('submissions', function($q) use ($user) {
-                    $q->where('student_id', $user->id);
+            $availableFolders = Folder::query()
+                ->where(function ($query) {
+                    $query->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                })
+                ->orWhere(function ($query) {
+                    $query->whereNotNull('due_date')
+                        ->whereDate('due_date', '<', today())
+                        ->where('is_reopened', true);
                 })
                 ->with('supervisor')
                 ->get()
@@ -50,8 +63,9 @@ class DashboardController extends Controller
                         'id' => $folder->id,
                         'name' => $folder->name,
                         'description' => $folder->description,
-                        'due_date' => $folder->due_date->format('Y-m-d'),
+                        'due_date' => optional($folder->due_date)?->format('Y-m-d'),
                         'supervisor_name' => $folder->supervisor->name ?? 'Unknown',
+                        'is_reopened' => $folder->is_reopened,
                     ];
                 });
 
@@ -69,11 +83,27 @@ class DashboardController extends Controller
                     ];
                 });
 
+            $companies = Company::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'address'])
+                ->map(fn (Company $company) => [
+                    'id' => $company->id,
+                    'name' => $company->name,
+                    'address' => $company->address,
+                ])
+                ->values();
+
             return inertia('Student/Dashboard', [
                 'stats' => $stats,
                 'recentReports' => $recentReports,
                 'availableFolders' => $availableFolders,
-                'notifications' => $notifications
+                'notifications' => $notifications,
+                'companies' => $companies,
+                'currentCompany' => [
+                    'name' => $user->company,
+                    'address' => $companies->firstWhere('name', $user->company)['address'] ?? null,
+                ],
             ]);
         }
 
@@ -183,10 +213,16 @@ class DashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Only students can submit reports.');
         }
 
-        $availableFolders = Folder::whereDoesntHave('submissions', function($q) use ($user) {
-                $q->where('student_id', $user->id);
+        $availableFolders = Folder::query()
+            ->where(function ($query) {
+                $query->whereNull('due_date')
+                    ->orWhereDate('due_date', '>=', today());
             })
-            ->where('due_date', '>=', now()) // Only show folders that are not yet due
+            ->orWhere(function ($query) {
+                $query->whereNotNull('due_date')
+                    ->whereDate('due_date', '<', today())
+                    ->where('is_reopened', true);
+            })
             ->with('supervisor')
             ->get()
             ->map(function($folder) {
@@ -194,8 +230,9 @@ class DashboardController extends Controller
                     'id' => $folder->id,
                     'name' => $folder->name,
                     'description' => $folder->description,
-                    'due_date' => $folder->due_date->format('Y-m-d'),
+                    'due_date' => optional($folder->due_date)?->format('Y-m-d'),
                     'supervisor_name' => $folder->supervisor->name ?? 'Unknown',
+                    'is_reopened' => $folder->is_reopened,
                 ];
             });
 

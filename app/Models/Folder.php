@@ -13,11 +13,15 @@ class Folder extends Model
         'name',
         'description',
         'due_date',
-        'supervisor_id'
+        'supervisor_id',
+        'is_reopened',
+        'reopened_at',
     ];
 
     protected $casts = [
         'due_date' => 'date',
+        'is_reopened' => 'boolean',
+        'reopened_at' => 'datetime',
     ];
 
     public function supervisor()

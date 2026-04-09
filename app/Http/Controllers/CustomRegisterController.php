@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Department;
 use App\Models\User;
 use App\Models\Role;
@@ -19,7 +20,18 @@ class CustomRegisterController extends Controller
      */
     public function showRegistrationForm()
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/Register', [
+            'companies' => Company::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'address'])
+                ->map(fn (Company $company) => [
+                    'id' => $company->id,
+                    'company' => $company->name,
+                    'address' => $company->address,
+                ])
+                ->values(),
+        ]);
     }
 
     /**
@@ -32,20 +44,43 @@ class CustomRegisterController extends Controller
             'email'      => 'required|string|email|max:255|unique:users',
             'password'   => ['required', 'confirmed', Rules\Password::defaults()],
             'student_id' => 'nullable|string|unique:users',
-            'department' => 'nullable|string|max:255',
-            'company'    => 'nullable|string|max:255',
+            'department' => 'required|string|max:255',
+            'company'    => 'required|string|max:255|exists:companies,name',
         ]);
+
+        $company = Company::query()
+            ->get()
+            ->first(fn (Company $company) => $this->normalizeCompany($company->name) === $this->normalizeCompany($request->company));
+
+        $canonicalCompanyName = $company?->name ?? $request->company;
 
         // Ensure the student role exists
         $studentRole = Role::firstOrCreate(['name' => 'student']);
-        $department = null;
+        $department = Department::query()
+            ->get()
+            ->first(function (Department $department) use ($request, $canonicalCompanyName) {
+                return $department->name === $request->department
+                    && $this->normalizeCompany($department->company) === $this->normalizeCompany($canonicalCompanyName);
+            });
 
-        if ($request->filled('department')) {
-            $department = Department::query()->firstOrCreate(
-                ['name' => $request->department, 'company' => $request->company],
-                ['description' => null, 'is_active' => true]
-            );
+        if (! $department) {
+            $department = Department::query()->create([
+                'name' => $request->department,
+                'company' => $canonicalCompanyName,
+                'description' => null,
+                'is_active' => true,
+            ]);
         }
+
+        $supervisor = User::query()
+            ->with('departmentRecord')
+            ->where('role', 'supervisor')
+            ->get()
+            ->first(function (User $supervisor) use ($canonicalCompanyName) {
+                $supervisorCompany = $supervisor->company ?: $supervisor->departmentRecord?->company;
+
+                return $this->normalizeCompany($supervisorCompany) === $this->normalizeCompany($canonicalCompanyName);
+            });
 
         // Create the user
         $user = User::create([
@@ -56,7 +91,8 @@ class CustomRegisterController extends Controller
             'department_id' => $department?->id,
             'student_id' => $request->student_id,
             'department' => $department?->name ?? ($request->department ?: 'CAST'),
-            'company'    => $request->company,
+            'company'    => $canonicalCompanyName,
+            'supervisor_id' => $supervisor?->id,
             'is_active'  => true,
         ]);
 
@@ -74,5 +110,10 @@ class CustomRegisterController extends Controller
 
         // Redirect to dashboard
         return redirect()->route('dashboard');
+    }
+
+    private function normalizeCompany(?string $company): string
+    {
+        return strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) $company));
     }
 }

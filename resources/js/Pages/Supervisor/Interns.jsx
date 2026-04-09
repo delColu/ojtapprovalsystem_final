@@ -1,152 +1,113 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
+import { Head } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 
-// Status badge component for intern progress
 function ProgressBadge({ rate }) {
-    let color = 'gray';
-    let label = 'No Activity';
-
     if (rate >= 80) {
-        color = 'green';
-        label = 'Excellent';
-    } else if (rate >= 60) {
-        color = 'blue';
-        label = 'Good';
-    } else if (rate >= 40) {
-        color = 'yellow';
-        label = 'Average';
-    } else if (rate > 0) {
-        color = 'orange';
-        label = 'Needs Attention';
+        return <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">Excellent</span>;
     }
 
-    return (
-        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-${color}-100 text-${color}-800`}>
-            {label}
-        </span>
-    );
+    if (rate >= 60) {
+        return <span className="rounded-full border border-blue-500/30 bg-blue-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-300">Good</span>;
+    }
+
+    if (rate >= 40) {
+        return <span className="rounded-full border border-amber-500/30 bg-amber-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300">Average</span>;
+    }
+
+    if (rate > 0) {
+        return <span className="rounded-full border border-orange-500/30 bg-orange-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-300">Attention</span>;
+    }
+
+    return <span className="rounded-full border border-slate-600 bg-slate-700 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">No Activity</span>;
 }
 
-// Search input component
-function SearchInput({ value, onChange, placeholder }) {
+function SearchField({ value, onChange }) {
     return (
-        <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <div className="relative flex-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 21l-4.35-4.35m1.35-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
             </div>
             <input
                 type="text"
                 value={value}
-                onChange={(e) => onChange(e.target.value)}
-                className="block w-full rounded-xl border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm placeholder-gray-400 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-300"
-                placeholder={placeholder}
+                onChange={(event) => onChange(event.target.value)}
+                placeholder="Search intern..."
+                className="w-full rounded-lg border-2 border-slate-600 bg-slate-800/80 py-2.5 pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
             />
         </div>
     );
 }
 
-// Filter dropdown component
-function FilterDropdown({ options, value, onChange, label }) {
-    const [isOpen, setIsOpen] = useState(false);
-
+function SelectField({ value, onChange, options }) {
     return (
-        <div className="relative">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        <div className="relative flex-1">
+            <select
+                value={value}
+                onChange={(event) => onChange(event.target.value)}
+                className="w-full appearance-none rounded-lg border-2 border-slate-600 bg-slate-800/80 px-4 py-2.5 pr-10 text-sm text-white outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
             >
-                {label}
-                <svg className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                {options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                        {option.label}
+                    </option>
+                ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 9l-7 7-7-7" />
                 </svg>
-            </button>
-            {isOpen && (
-                <div className="absolute right-0 z-10 mt-1 w-48 rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
-                    {options.map((option) => (
-                        <button
-                            key={option.value}
-                            onClick={() => {
-                                onChange(option.value);
-                                setIsOpen(false);
-                            }}
-                            className={`block w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
-                                value === option.value ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                            }`}
-                        >
-                            {option.label}
-                        </button>
-                    ))}
-                </div>
-            )}
+            </div>
         </div>
     );
 }
 
-// Stat Card component
-function StatCard({ title, value, icon: Icon, trend, trendLabel, color = 'blue' }) {
+function StatCard({ label, value, accent, trend }) {
     return (
-        <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md">
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-sm font-medium text-gray-500">{title}</p>
-                    <p className="mt-2 text-3xl font-semibold text-gray-900">{value?.toLocaleString() ?? 0}</p>
-                    {trend !== undefined && (
-                        <div className="mt-2 flex items-center gap-1">
-                            <span className={`text-xs font-medium ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {trend >= 0 ? `↑ ${trend}%` : `↓ ${Math.abs(trend)}%`}
-                            </span>
-                            {trendLabel && <span className="text-xs text-gray-400">{trendLabel}</span>}
-                        </div>
-                    )}
-                </div>
-                {Icon && (
-                    <div className={`rounded-xl bg-${color}-50 p-2.5 text-${color}-500 transition-colors group-hover:bg-${color}-100`}>
-                        <Icon />
-                    </div>
+        <div className="rounded-lg border border-slate-500/80 bg-gradient-to-b from-slate-800/95 to-slate-900/95 p-3 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.9)] ring-1 ring-white/5">
+            <div className={`h-1.5 w-8 rounded-full bg-gradient-to-r ${accent}`} />
+            <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-400">{label}</p>
+            <div className="mt-1 flex items-baseline gap-2">
+                <p className="text-xl font-semibold tracking-tight text-white">{value}</p>
+                {trend && (
+                    <span className="text-[10px] font-medium text-emerald-400">{trend}</span>
                 )}
             </div>
         </div>
     );
 }
 
-// Icons
 const Icons = {
-    Users: () => (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    ArrowRight: ({ className = 'h-4 w-4' }) => (
+        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5l7 7-7 7" />
         </svg>
     ),
-    Chart: () => (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    Download: ({ className = 'h-4 w-4' }) => (
+        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
     ),
-    Check: () => (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    Mail: ({ className = 'h-4 w-4' }) => (
+        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
     ),
-    Mail: () => (
-        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    Building: ({ className = 'h-4 w-4' }) => (
+        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
     ),
-    Building: () => (
-        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+    Department: ({ className = 'h-4 w-4' }) => (
+        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
     ),
-    ChevronRight: () => (
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-    ),
-    Download: () => (
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    Close: ({ className = 'h-5 w-5' }) => (
+        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
     ),
 };
@@ -156,35 +117,32 @@ export default function Interns({ interns = [], approvalRate = 0, statistics = {
     const [sortBy, setSortBy] = useState('name');
     const [sortOrder, setSortOrder] = useState('asc');
     const [filterDepartment, setFilterDepartment] = useState('all');
+    const [selectedIntern, setSelectedIntern] = useState(null);
 
-    // Extract unique departments for filter
     const departments = useMemo(() => {
-        const depts = new Set(interns.map(i => i.department).filter(Boolean));
-        return [{ value: 'all', label: 'All Departments' }, ...Array.from(depts).map(d => ({ value: d, label: d }))];
+        const items = new Set(interns.map((intern) => intern.department).filter(Boolean));
+        return [{ value: 'all', label: 'All Departments' }, ...Array.from(items).map((item) => ({ value: item, label: item }))];
     }, [interns]);
 
-    // Filter and sort interns
     const filteredInterns = useMemo(() => {
         let filtered = [...interns];
 
-        // Apply search
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
-            filtered = filtered.filter(intern =>
-                intern.name?.toLowerCase().includes(term) ||
-                intern.email?.toLowerCase().includes(term) ||
-                intern.student_id?.toLowerCase().includes(term) ||
-                intern.department?.toLowerCase().includes(term) ||
-                intern.company?.toLowerCase().includes(term)
+            filtered = filtered.filter(
+                (intern) =>
+                    intern.name?.toLowerCase().includes(term) ||
+                    intern.email?.toLowerCase().includes(term) ||
+                    intern.student_id?.toLowerCase().includes(term) ||
+                    intern.department?.toLowerCase().includes(term) ||
+                    intern.company?.toLowerCase().includes(term),
             );
         }
 
-        // Apply department filter
         if (filterDepartment !== 'all') {
-            filtered = filtered.filter(intern => intern.department === filterDepartment);
+            filtered = filtered.filter((intern) => intern.department === filterDepartment);
         }
 
-        // Apply sorting
         filtered.sort((a, b) => {
             let aVal = a[sortBy] || '';
             let bVal = b[sortBy] || '';
@@ -201,18 +159,16 @@ export default function Interns({ interns = [], approvalRate = 0, statistics = {
 
             if (sortOrder === 'asc') {
                 return aVal > bVal ? 1 : -1;
-            } else {
-                return aVal < bVal ? 1 : -1;
             }
+
+            return aVal < bVal ? 1 : -1;
         });
 
         return filtered;
-    }, [interns, searchTerm, sortBy, sortOrder, filterDepartment]);
+    }, [filterDepartment, interns, searchTerm, sortBy, sortOrder]);
 
-    // Calculate derived statistics
-    const activeInterns = interns.filter(i => (i.submissions_count || 0) > 0).length;
-    const totalSubmissions = interns.reduce((sum, i) => sum + (i.submissions_count || 0), 0);
-    const avgSubmissionsPerIntern = interns.length > 0 ? (totalSubmissions / interns.length).toFixed(1) : 0;
+    const activeInterns = interns.filter((intern) => (intern.submissions_count || 0) > 0).length;
+    const totalSubmissions = interns.reduce((sum, intern) => sum + (intern.submissions_count || 0), 0);
 
     const handleSort = (field) => {
         if (sortBy === field) {
@@ -225,8 +181,9 @@ export default function Interns({ interns = [], approvalRate = 0, statistics = {
 
     const SortIcon = ({ field }) => {
         if (sortBy !== field) return null;
+
         return (
-            <svg className="ml-1 h-3 w-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {sortOrder === 'asc' ? (
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                 ) : (
@@ -237,200 +194,285 @@ export default function Interns({ interns = [], approvalRate = 0, statistics = {
     };
 
     return (
-        <AuthenticatedLayout>
-            <Head title="Supervisor Interns" />
+        <>
+            <AuthenticatedLayout>
+                <Head title="Supervisor Interns" />
 
-            <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
-                {/* Header Section */}
-                <div>
-                    <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">Management</p>
-                        <span className="h-1 w-1 rounded-full bg-gray-300" />
-                        <p className="text-xs text-gray-400">Supervised Interns</p>
-                    </div>
-                    <h1 className="mt-2 text-3xl font-semibold tracking-tight text-gray-900">Interns</h1>
-                    <p className="mt-2 max-w-3xl text-sm text-gray-500">
-                        Manage and monitor all interns under your supervision. Department refers to CAST, while company refers to the student's assigned company.
-                    </p>
-                </div>
+                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-6 sm:px-6 lg:px-8">
+                    <div className="mx-auto max-w-7xl space-y-6">
+                        {/* Header Section */}
+                        <div className="border-b-2 border-slate-700 pb-5">
+                            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                                <div className="space-y-2">
+                                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-400">
+                                        Supervisor Directory
+                                    </p>
+                                    <div className="space-y-1">
+                                        <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                                            Interns
+                                        </h1>
+                                        <p className="max-w-xl text-sm text-slate-400">
+                                            Manage and monitor all your supervised interns in one place.
+                                        </p>
+                                    </div>
+                                </div>
 
-                {/* Statistics Cards */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard title="Total Interns" value={interns.length} icon={Icons.Users} color="blue" />
-                    <StatCard title="Active Interns" value={activeInterns} trend={interns.length > 0 ? Math.round((activeInterns / interns.length) * 100) : 0} trendLabel="active rate" icon={Icons.Chart} color="green" />
-                    <StatCard title="Approval Rate" value={approvalRate} icon={Icons.Check} color="purple" />
-                    <StatCard title="Avg. Submissions" value={avgSubmissionsPerIntern} icon={Icons.Users} color="orange" />
-                </div>
-
-                {/* Intern List Section */}
-                <section className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                    {/* Header with actions */}
-                    <div className="border-b border-gray-100 bg-gray-50/50 px-5 py-4">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-900">Intern List</h2>
-                                <p className="text-xs text-gray-500 mt-0.5">
-                                    {filteredInterns.length} of {interns.length} intern{interns.length !== 1 ? 's' : ''} shown
-                                </p>
-                            </div>
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                                <SearchInput
-                                    value={searchTerm}
-                                    onChange={setSearchTerm}
-                                    placeholder="Search by name, email, ID, department, or company..."
-                                />
-                                <FilterDropdown
-                                    options={departments}
-                                    value={filterDepartment}
-                                    onChange={setFilterDepartment}
-                                    label="Department (CAST)"
-                                />
-                                <button className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                                    <Icons.Download />
-                                    Export
-                                </button>
+                                {/* Stats Row */}
+                                <div className="grid grid-cols-3 gap-2">
+                                    <StatCard
+                                        label="Total Interns"
+                                        value={interns.length}
+                                        accent="from-slate-500 to-slate-600"
+                                    />
+                                    <StatCard
+                                        label="Active Interns"
+                                        value={activeInterns}
+                                        accent="from-blue-600 to-cyan-500"
+                                        trend={`${activeInterns > 0 ? 'Active' : 'Inactive'}`}
+                                    />
+                                    <StatCard
+                                        label="Approval Rate"
+                                        value={`${approvalRate}%`}
+                                        accent="from-emerald-500 to-teal-400"
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Interns Table */}
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th
-                                        onClick={() => handleSort('name')}
-                                        className="cursor-pointer px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700"
+                        {/* Horizontal Filters Bar */}
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+                                <SearchField value={searchTerm} onChange={setSearchTerm} />
+                                <SelectField
+                                    value={filterDepartment}
+                                    onChange={setFilterDepartment}
+                                    options={departments}
+                                />
+                            </div>
+                            <a
+                                href={route('supervisor.interns.export-pdf')}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-cyan-700 whitespace-nowrap"
+                            >
+                                <Icons.Download />
+                                Export List
+                            </a>
+                        </div>
+
+                        {/* Interns List */}
+                        <section className="space-y-3">
+                            {/* Table Header */}
+                            <div className="grid gap-2 rounded-lg border border-slate-500/80 bg-gradient-to-b from-slate-800/95 to-slate-900/95 px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.9)] ring-1 ring-white/5 md:grid-cols-[1.4fr_1.1fr_0.9fr_1fr_0.7fr_0.8fr]">
+                                <button type="button" onClick={() => handleSort('name')} className="flex items-center text-left hover:text-cyan-400 transition">
+                                    Intern <SortIcon field="name" />
+                                </button>
+                                <div>Contact</div>
+                                <button type="button" onClick={() => handleSort('department')} className="flex items-center text-left hover:text-cyan-400 transition">
+                                    Department <SortIcon field="department" />
+                                </button>
+                                <button type="button" onClick={() => handleSort('company')} className="flex items-center text-left hover:text-cyan-400 transition">
+                                    Company <SortIcon field="company" />
+                                </button>
+                                <button type="button" onClick={() => handleSort('submissions_count')} className="flex items-center justify-start md:justify-center hover:text-cyan-400 transition">
+                                    Reports <SortIcon field="submissions_count" />
+                                </button>
+                                <div className="md:text-center">Progress</div>
+                            </div>
+
+                            {/* Intern Cards */}
+                            {filteredInterns.length === 0 ? (
+                                <div className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-500/80 bg-slate-800/60 px-6 text-center shadow-[0_18px_40px_-28px_rgba(15,23,42,0.9)] ring-1 ring-white/5">
+                                    <div className="rounded-lg border border-slate-500/80 bg-slate-700/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-300 shadow-sm">
+                                        No Results
+                                    </div>
+                                    <p className="mt-3 text-sm font-medium text-slate-400">No interns found matching your criteria.</p>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSearchTerm('');
+                                            setFilterDepartment('all');
+                                        }}
+                                        className="mt-3 text-sm text-cyan-400 underline hover:text-cyan-300"
                                     >
-                                        <div className="flex items-center">
-                                            Intern <SortIcon field="name" />
-                                        </div>
-                                    </th>
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Contact
-                                    </th>
-                                    <th
-                                        onClick={() => handleSort('department')}
-                                        className="cursor-pointer px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700"
-                                    >
-                                        <div className="flex items-center">
-                                            Department <SortIcon field="department" />
-                                        </div>
-                                    </th>
-                                    <th
-                                        onClick={() => handleSort('company')}
-                                        className="cursor-pointer px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700"
-                                    >
-                                        <div className="flex items-center">
-                                            Company Name <SortIcon field="company" />
-                                        </div>
-                                    </th>
-                                    <th
-                                        onClick={() => handleSort('submissions_count')}
-                                        className="cursor-pointer px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700"
-                                    >
-                                        <div className="flex items-center justify-center">
-                                            Reports <SortIcon field="submissions_count" />
-                                        </div>
-                                    </th>
-                                    <th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Progress
-                                    </th>
-                                    <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 bg-white">
-                                {filteredInterns.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="7" className="px-5 py-12 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <div className="rounded-full bg-gray-100 p-3">
-                                                    <Icons.Users />
-                                                </div>
-                                                <p className="mt-3 text-sm text-gray-500">No interns found</p>
-                                                {searchTerm && (
-                                                    <button
-                                                        onClick={() => setSearchTerm('')}
-                                                        className="mt-2 text-sm text-blue-600 hover:text-blue-700"
-                                                    >
-                                                        Clear search
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredInterns.map((intern) => {
+                                        Clear filters
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {filteredInterns.map((intern, index) => {
                                         const submissionRate = statistics.total_submissions > 0
                                             ? Math.round(((intern.submissions_count || 0) / statistics.total_submissions) * 100)
                                             : 0;
 
                                         return (
-                                            <tr key={intern.id} className="group hover:bg-gray-50/50 transition-colors">
-                                                <td className="whitespace-nowrap px-5 py-4">
-                                                    <div className="flex items-center">
-                                                        <div className="h-9 w-9 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-700 font-semibold">
+                                            <button
+                                                key={intern.id}
+                                                type="button"
+                                                onClick={() => setSelectedIntern(intern)}
+                                                className="w-full rounded-lg border border-slate-500/80 bg-gradient-to-b from-slate-800/88 to-slate-900/82 px-4 py-3 text-left shadow-[0_18px_40px_-28px_rgba(15,23,42,0.9)] ring-1 ring-white/5 transition-all duration-300 hover:border-cyan-500/45 hover:shadow-[0_22px_44px_-26px_rgba(6,182,212,0.2)]"
+                                            >
+                                                <div className="grid gap-3 md:grid-cols-[1.4fr_1.1fr_0.9fr_1fr_0.7fr_0.8fr] md:items-center">
+                                                    {/* Intern Info */}
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-cyan-500/20 bg-gradient-to-br from-cyan-500/18 to-indigo-500/18 text-sm font-semibold text-cyan-300 shadow-inner shadow-cyan-950/20">
                                                             {intern.name?.charAt(0).toUpperCase() || '?'}
                                                         </div>
-                                                        <div className="ml-3">
-                                                            <p className="text-sm font-medium text-gray-900">{intern.name || 'Unnamed'}</p>
-                                                            <p className="text-xs text-gray-500">ID: {intern.student_id || 'N/A'}</p>
+                                                        <div className="min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="truncate text-sm font-semibold tracking-tight text-white">
+                                                                    {intern.name || 'Unnamed'}
+                                                                </p>
+                                                                <span className="hidden sm:inline-flex rounded-full border border-slate-500/80 bg-slate-700/85 px-2 py-0.5 text-[9px] font-semibold text-slate-300 shadow-sm">
+                                                                    #{String(index + 1).padStart(2, '0')}
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-0.5 text-[11px] text-slate-400">
+                                                                ID: {intern.student_id || 'N/A'}
+                                                            </p>
                                                         </div>
                                                     </div>
-                                                </td>
-                                                <td className="whitespace-nowrap px-5 py-4">
-                                                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                                                        <Icons.Mail />
-                                                        <span className="truncate max-w-[180px]">{intern.email || 'No email'}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="whitespace-nowrap px-5 py-4 text-sm text-gray-600">
-                                                    {intern.department || '—'}
-                                                </td>
-                                                <td className="whitespace-nowrap px-5 py-4">
-                                                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                                                        <Icons.Building />
-                                                        <span className="truncate max-w-[150px]">{intern.company || '—'}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="whitespace-nowrap px-5 py-4 text-center">
-                                                    <span className="inline-flex items-center justify-center rounded-full bg-blue-100 px-2.5 py-0.5 text-sm font-semibold text-blue-800">
-                                                        {intern.submissions_count || 0}
-                                                    </span>
-                                                </td>
-                                                <td className="whitespace-nowrap px-5 py-4">
-                                                    <div className="flex justify-center">
-                                                        <ProgressBadge rate={submissionRate} />
-                                                    </div>
-                                                </td>
-                                                <td className="whitespace-nowrap px-5 py-4 text-right">
-                                                    <span className="inline-flex items-center gap-1 text-sm font-medium text-gray-400 opacity-0 transition-opacity group-hover:opacity-100">
-                                                        View Details
-                                                        <Icons.ChevronRight />
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
 
-                    {/* Footer with pagination info */}
-                    {filteredInterns.length > 0 && filteredInterns.length < interns.length && (
-                        <div className="border-t border-gray-100 bg-gray-50/30 px-5 py-3 text-center">
-                            <p className="text-xs text-gray-500">
-                                Showing {filteredInterns.length} of {interns.length} interns
-                                {searchTerm && ` matching "${searchTerm}"`}
-                                {filterDepartment !== 'all' && ` in ${filterDepartment}`}
-                            </p>
+                                                    {/* Email */}
+                                                    <div className="min-w-0">
+                                                        <div className="flex items-center gap-1.5 text-xs text-slate-300">
+                                                            <Icons.Mail className="h-3 w-3 flex-shrink-0 text-slate-400" />
+                                                            <span className="truncate text-xs">{intern.email || 'No email'}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Department */}
+                                                    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-300">
+                                                        <Icons.Department className="h-3 w-3 flex-shrink-0 text-slate-400" />
+                                                        <span className="text-xs">{intern.department || '—'}</span>
+                                                    </div>
+
+                                                    {/* Company */}
+                                                    <div className="min-w-0">
+                                                        <div className="flex items-center gap-1.5 text-xs text-slate-300">
+                                                            <Icons.Building className="h-3 w-3 flex-shrink-0 text-slate-400" />
+                                                            <span className="truncate text-xs">{intern.company || '—'}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Reports Count */}
+                                                    <div className="flex items-center justify-start md:justify-center">
+                                                        <span className="inline-flex h-7 min-w-[42px] items-center justify-center rounded-lg border border-cyan-400/20 bg-cyan-600 px-2.5 text-xs font-semibold text-white shadow-[0_10px_24px_-14px_rgba(6,182,212,0.8)]">
+                                                            {intern.submissions_count || 0}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Progress Badge */}
+                                                    <div className="flex items-center justify-between gap-2 md:justify-center">
+                                                        <ProgressBadge rate={submissionRate} />
+                                                        <span className="inline-flex items-center text-[11px] font-medium text-slate-400 md:hidden">
+                                                            View
+                                                            <Icons.ArrowRight className="ml-1 h-3 w-3" />
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Summary Footer */}
+                            {filteredInterns.length > 0 && (
+                                <div className="flex items-center justify-between rounded-lg border border-slate-500/80 bg-gradient-to-b from-slate-800/95 to-slate-900/95 px-4 py-2.5 text-xs text-slate-400 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.9)] ring-1 ring-white/5">
+                                    <span>Showing {filteredInterns.length} of {interns.length} interns</span>
+                                    <span className="text-[11px]">Total reports: {totalSubmissions}</span>
+                                </div>
+                            )}
+                        </section>
+                    </div>
+                </div>
+            </AuthenticatedLayout>
+
+            {/* Intern Details Modal */}
+            {selectedIntern && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 backdrop-blur-sm"
+                    onClick={() => setSelectedIntern(null)}
+                >
+                    <div
+                        className="relative w-full max-w-lg overflow-hidden rounded-xl border border-slate-500/80 bg-gradient-to-b from-slate-800 to-slate-900 shadow-2xl ring-1 ring-white/5"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between border-b border-slate-600/80 bg-white/[0.02] px-5 py-4">
+                            <div>
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-cyan-400">
+                                    Intern Profile
+                                </p>
+                                <h3 className="mt-1 text-xl font-semibold tracking-tight text-white">
+                                    {selectedIntern.name}
+                                </h3>
+                            </div>
+                            <button
+                                onClick={() => setSelectedIntern(null)}
+                                className="rounded-full p-1 text-slate-400 transition hover:bg-slate-700 hover:text-slate-300"
+                            >
+                                <Icons.Close />
+                            </button>
                         </div>
-                    )}
-                </section>
-            </div>
-        </AuthenticatedLayout>
+
+                        {/* Modal Content */}
+                        <div className="grid gap-4 p-5 md:grid-cols-2">
+                            <div className="space-y-3 rounded-lg border border-slate-500/80 bg-slate-800/65 p-4 ring-1 ring-white/5">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                                    Contact Information
+                                </p>
+                                <div className="space-y-2 text-sm">
+                                    <div>
+                                        <p className="text-xs font-medium text-slate-400">Email Address</p>
+                                        <p className="mt-0.5 text-white text-sm">{selectedIntern.email || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-slate-400">Student ID</p>
+                                        <p className="mt-0.5 text-white">{selectedIntern.student_id || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-slate-400">Department</p>
+                                        <p className="mt-0.5 text-white">{selectedIntern.department || 'Not specified'}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3 rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-4 shadow-[0_14px_28px_-22px_rgba(6,182,212,0.45)] ring-1 ring-cyan-400/10">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                                    Internship Overview
+                                </p>
+                                <div className="space-y-2 text-sm">
+                                    <div>
+                                        <p className="text-xs font-medium text-slate-400">Company Assignment</p>
+                                        <p className="mt-0.5 text-white">{selectedIntern.company || 'Not assigned'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-slate-400">Reports Submitted</p>
+                                        <p className="mt-0.5 text-2xl font-semibold text-cyan-400">{selectedIntern.submissions_count || 0}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-slate-400">Status</p>
+                                        <span className="mt-1 inline-block rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+                                            {selectedIntern.status || 'Active'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="flex justify-end border-t border-slate-600/80 bg-white/[0.02] px-5 py-3">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedIntern(null)}
+                                className="rounded-lg bg-cyan-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-cyan-700"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 }

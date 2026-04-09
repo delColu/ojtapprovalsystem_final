@@ -72,10 +72,47 @@
         </div>
     </div>
 
-    @if($submission->feedback)
+    @if($submission->supervisor_feedback || $submission->supervisor)
     <div class="section">
-        <div class="section-title">Supervisor Feedback</div>
-        <p>{{ $submission->feedback }}</p>
+        <div class="section-title">Supervisor Approval Proof</div>
+        <div class="info-row">
+            <span class="label">Supervisor:</span>
+            <span>{{ $submission->supervisor->name ?? 'N/A' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Approved At:</span>
+            <span>{{ optional($submission->supervisor_approved_at)->format('F d, Y h:i A') ?? 'N/A' }}</span>
+        </div>
+        @if($submission->supervisor_feedback)
+            <div class="info-row">
+                <span class="label">Feedback:</span>
+                <p>{{ $submission->supervisor_feedback }}</p>
+            </div>
+        @endif
+    </div>
+    @endif
+
+    @if($submission->forwarded_to_dean_at || $submission->dean_feedback || $submission->dean)
+    <div class="section">
+        <div class="section-title">Dean Review</div>
+        <div class="info-row">
+            <span class="label">Forwarded At:</span>
+            <span>{{ optional($submission->forwarded_to_dean_at)->format('F d, Y h:i A') ?? 'N/A' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Dean:</span>
+            <span>{{ $submission->dean->name ?? 'Pending review' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Reviewed At:</span>
+            <span>{{ optional($submission->dean_reviewed_at)->format('F d, Y h:i A') ?? 'N/A' }}</span>
+        </div>
+        @if($submission->dean_feedback)
+            <div class="info-row">
+                <span class="label">Feedback:</span>
+                <p>{{ $submission->dean_feedback }}</p>
+            </div>
+        @endif
     </div>
     @endif
 
