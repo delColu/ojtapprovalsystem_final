@@ -26,24 +26,21 @@ class DepartmentSeeder extends Seeder
             $deanId = null;
 
             if ($entry['name'] === 'CAST') {
-                $deanId = User::query()
+$deanId = User::query()
                     ->where('role_id', 2)
-                    ->where(function ($query) {
-                        $query->where('department', 'CAST')
-                            ->orWhere('email', 'dean@gmail.com');
-                    })
+                    ->where('email', 'dean@gmail.com')
                     ->value('id');
             }
 
             if (! $deanId) {
-                $deanId = User::query()
-                    ->where('role_id', 2)
-                    ->where('department', $entry['name'])
-                    ->value('id');
+// $deanId = User::query()
+                    // ->where('role_id', 2)
+                    // ->where('department', $entry['name'])
+                    // ->value('id');
             }
 
-            $department = Department::query()->updateOrCreate(
-                ['name' => $entry['name'], 'company' => $entry['company']],
+$department = Department::query()->updateOrCreate(
+                ['name' => $entry['name']],
                 [
                     'address' => $entry['address'] ?? null,
                     'description' => null,
@@ -52,9 +49,9 @@ class DepartmentSeeder extends Seeder
                 ]
             );
 
-            User::query()
-                ->where('department', $entry['name'])
-                ->update(['department_id' => $department->id]);
+// User::query()
+                // ->where('department', $entry['name'])
+                // ->update(['department_id' => $department->id]);
         }
     }
 }

@@ -32,8 +32,7 @@ class StudentUserSeeder extends Seeder
                     'role_id'           => 4,
                     'department_id'     => $department?->id,
                     'student_id'        => $student['student_id'],
-                    'department'        => 'CAST',
-                    'company'           => $student['company'],
+'company_id'        => 2, // BOHECO I etc., adjust as needed
                     'supervisor_id'     => $supervisor?->id,
                     'is_active'         => true,
                     'email_verified_at' => now(),

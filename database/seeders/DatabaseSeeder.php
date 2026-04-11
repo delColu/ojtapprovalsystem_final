@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             DepartmentSeeder::class,
             SupervisorUserSeeder::class,
             StudentUserSeeder::class,
+            UserSeeder::class,
         ]);
 
         $this->command->info('All seeders completed successfully!');

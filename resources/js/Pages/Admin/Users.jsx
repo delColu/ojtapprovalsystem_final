@@ -8,6 +8,7 @@ const emptyUser = {
     email: '',
     role_id: '',
     department_id: '',
+    company_id: '',
     student_id: '',
     is_active: true,
 };
@@ -52,6 +53,7 @@ export default function Users({ users, roles, departments, companies = [] }) {
             email: user.email || '',
             role_id: role?.id || '',
             department_id: user.department_id || '',
+            company_id: user.company_id || '',
             student_id: user.student_id || '',
             is_active: user.status === 'Active',
         });
@@ -108,7 +110,7 @@ export default function Users({ users, roles, departments, companies = [] }) {
                         <SelectField value={roleFilter} onChange={setRoleFilter} options={roles.map((role) => ({ value: role.name, label: role.name.charAt(0).toUpperCase() + role.name.slice(1) }))} placeholder="All Roles" />
                         <SelectField value={statusFilter} onChange={setStatusFilter} options={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} placeholder="All Status" />
                         <SelectField value={departmentFilter} onChange={setDepartmentFilter} options={departmentOptions} placeholder="Department" />
-                        <SelectField value={companyFilter} onChange={setCompanyFilter} options={companies.map((company) => ({ value: company, label: company }))} placeholder="Company" />
+                <SelectField value={companyFilter} onChange={setCompanyFilter} options={companies.map((company) => ({ value: company.id.toString(), label: company.name }))} placeholder="Company" />
                     </div>
 
                     {filteredUsers.length === 0 ? (
@@ -120,7 +122,8 @@ export default function Users({ users, roles, departments, companies = [] }) {
                                     <tr className="text-left text-xs uppercase tracking-wide text-gray-500">
                                         <th className="px-3 pb-3 font-semibold">User</th>
                                         <th className="px-3 pb-3 font-semibold">Role</th>
-                                        <th className="px-3 pb-3 font-semibold">Dept / Company</th>
+                                        <th className="px-3 pb-3 font-semibold">Dept</th>
+                                        <th className="px-3 pb-3 font-semibold">Company</th>
                                         <th className="px-3 pb-3 font-semibold">Tasks</th>
                                         <th className="px-3 pb-3 font-semibold">Joined</th>
                                         <th className="px-3 pb-3 font-semibold">Status</th>
@@ -136,7 +139,10 @@ export default function Users({ users, roles, departments, companies = [] }) {
                                             </td>
                                             <td className="px-3 py-4 text-sm capitalize text-gray-600 whitespace-nowrap">{user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}</td>
                                             <td className="px-3 py-4 text-sm text-gray-600 whitespace-nowrap">
-                                                {user.department || 'N/A'}{user.company ? ` / ${user.company}` : ''}
+                                                {user.department || 'N/A'}
+                                            </td>
+                                            <td className="px-3 py-4 text-sm text-gray-600 whitespace-nowrap">
+{user.company || 'N/A'}
                                             </td>
                                             <td className="px-3 py-4 text-sm text-gray-600 whitespace-nowrap text-center">{user.tasks}</td>
                                             <td className="px-3 py-4 text-sm text-gray-600 whitespace-nowrap">{user.joined}</td>
@@ -179,6 +185,17 @@ export default function Users({ users, roles, departments, companies = [] }) {
                             <select value={form.data.department_id} onChange={(event) => form.setData('department_id', event.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100">
                                 <option value="">Select department</option>
                                 {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
+                            </select>
+                        </label>
+                        <label className="space-y-2 text-sm font-medium text-gray-700">
+                            <span>Company</span>
+                            <select value={form.data.company_id} onChange={(event) => form.setData('company_id', event.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100">
+                                <option value="">Select company</option>
+                                {companies.map((company) => (
+                                    <option key={company.id} value={company.id}>
+                                        {company.name}
+                                    </option>
+                                ))}
                             </select>
                         </label>
                     </div>

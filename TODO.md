@@ -1,19 +1,12 @@
-# Fix SupervisorController - COMPLETED ✅
+# OJT Approval System - Admin Company Management Implementation
 
-## Steps:
+## Steps to Complete:
 
-- [x] 1. Add authorization check (isSupervisor abort 403) and scope queries to supervisor_id = auth()->id() in index(), use paginate(10), eager load student.folder, fix stats/recent scoped.
-- [x] 2. Update approve(): add scope check, set approved_by, create Notification, ActivityLog, send Mail.
-- [x] 3. Update reject(): add scope check, set rejected_by.
-- [x] 4. Add imports: use Illuminate\Support\Facades\Auth; App\Models\Notification; App\Models\ActivityLog; App\Mail\SubmissionStatusMail; Illuminate\Support\Facades\Mail;
-- [x] 5. Handle web.php Inertia route (return Inertia::render if request->inertia()).
-- [x] 6. Test changes: seed supervisor/student data, call endpoints, check dashboard.jsx.
-- [x] 7. Update TODO.md complete ✅
+- [x] Step 1: Create app/Http/Controllers/CompanyController.php with CRUD methods (index, store, update, destroy)
+- [x] Step 2: Edit routes/web.php to add Route::resource('companies', CompanyController::class); in admin group
+- [x] Step 3: Create full resources/js/Pages/Admin/Company.jsx with list, filters, table, CRUD modal matching Users.jsx
+- [x] Step 4: Test the page by running `php artisan serve` and visiting /admin/companies (use `php artisan serve` and login as admin to test /admin/companies)
+- [x] Step 5: Verify integration (create companies, assign in users page)
 
-**Status:** Controller fixed and scoped. Next: testing.
+**Complete!** Admin company management fully implemented.
 
-To test locally:
-1. php artisan migrate:fresh --seed (uses seeders)
-2. Login as supervisor (check seeder)
-3. Visit /supervisor or /api/supervisor/dashboard
-4. Submit from student, approve/reject.

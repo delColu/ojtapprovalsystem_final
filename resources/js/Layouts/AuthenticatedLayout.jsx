@@ -105,7 +105,9 @@ export default function AuthenticatedLayout({ header, children }) {
         if (component === 'Admin/Dashboard') return 'Dashboard';
         if (component === 'Admin/Users') return 'Users';
         if (component === 'Admin/Tasks') return 'All Tasks';
+        if (component === 'Admin/Company') return 'Companies';
         if (component === 'Admin/ActivityLogs') return 'Activity Logs';
+        if (component === 'Admin/Company') return 'Manage company records for user assignments, registration, and previews.';
         if (component === 'Notifications/Index') return 'Notifications';
         if (component === 'Student/MyReports') return 'My Reports';
         if (component === 'Student/Folders') return 'Report Folders';
@@ -182,7 +184,8 @@ export default function AuthenticatedLayout({ header, children }) {
             ],
             admin: [
                 { name: 'Dashboard', href: route('admin.dashboard'), icon: HomeIcon },
-                { name: 'Users', href: '/admin/users', icon: UsersIcon },
+{ name: 'Users', href: '/admin/users', icon: UsersIcon },
+                { name: 'Companies', href: '/admin/companies', icon: BriefcaseIcon },
                 { name: 'All Tasks', href: route('admin.tasks.index'), icon: ClipboardDocumentListIcon },
                 { name: 'Activity Logs', href: route('admin.activity-logs.index'), icon: ChartBarIcon },
             ],
@@ -208,6 +211,7 @@ export default function AuthenticatedLayout({ header, children }) {
         if (href === route('dean.reports.index') && url.startsWith('/dean/reports')) return true;
         if (href === route('admin.dashboard') && url === '/admin/dashboard') return true;
         if (href === '/admin/users' && url.startsWith('/admin/users')) return true;
+        if (href === '/admin/companies' && url.startsWith('/admin/companies')) return true;
         if (href === route('admin.tasks.index') && url.startsWith('/admin/tasks')) return true;
         if (href === route('admin.activity-logs.index') && url.startsWith('/admin/activity-logs')) return true;
         if (href === '/submit-reports' && (url === '/submit-reports' || component === 'Student/SubmitReports')) return true;

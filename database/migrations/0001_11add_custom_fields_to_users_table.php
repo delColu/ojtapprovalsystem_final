@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('role_id')->constrained('roles')->after('password');
-            $table->string('department')->nullable()->after('role_id');
-            $table->string('company')->nullable()->after('department');
-            $table->string('student_id')->nullable()->unique()->after('company');
+            $table->unsignedBigInteger('role_id')->nullable()->after('password');
+            $table->unsignedBigInteger('company_id')->nullable()->after('role_id');
+            $table->unsignedBigInteger('department_id')->nullable()->after('role_id');
+            $table->string('student_id')->nullable()->unique()->after('company_id');
             $table->string('supervisor_id')->nullable()->after('student_id');
             $table->boolean('is_active')->default(true)->after('supervisor_id');
         });
@@ -27,8 +27,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['role_id']);
-            $table->dropColumn(['role_id', 'department', 'company', 'student_id', 'supervisor_id', 'is_active']);
+// $table->dropForeign(['role_id']); // index already dropped
+            $table->dropForeign(['department_id']);
+            $table->dropColumn(['role_id', 'department', 'company', 'student_id', 'supervisor_id', 'is_active', 'department_id']);
         });
     }
 };

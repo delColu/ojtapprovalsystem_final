@@ -35,7 +35,7 @@ class User extends Authenticatable
         'department_id',
         'password',
         'department',
-        'company',
+        'company_id',
         'student_id',
         'supervisor_id',
         'is_active',
@@ -63,6 +63,11 @@ class User extends Authenticatable
     public function departmentRecord(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 
     public function submissions()

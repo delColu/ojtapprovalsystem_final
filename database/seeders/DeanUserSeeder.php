@@ -20,10 +20,10 @@ class DeanUserSeeder extends Seeder
         'name' => 'Dr. Robert Martinez',
         'email' => 'dean@gmail.com',
         'password' => Hash::make('dean@123'),
-        'role_id' => 2,
+'role_id' => 2,
         'role' => 'dean',
-        'department' => 'CAST',
-        'company' => 'Mater Dei College',
+        'department_id' => 1,
+        'company_id' => 1,
         'is_active' => true,
         'email_verified_at' => now(),
     ]
@@ -36,10 +36,10 @@ class DeanUserSeeder extends Seeder
                 'name' => 'Dr. Sarah Johnson',
                 'email' => 'deancomputing@gmail.com',
                 'password' => Hash::make('Dean@123'),
-                'role_id' => 2, // Dean role ID
-                'role' => 'dean',
-                'department' => 'College of Computer Studies',
-                'company' => 'Mater Dei College',
+'role_id' => 2, // Dean role ID
+        'role' => 'dean',
+        'department_id' => 1,
+        'company_id' => 1,
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]
@@ -52,10 +52,10 @@ class DeanUserSeeder extends Seeder
                 'name' => 'Prof. Michael Chen',
                 'email' => 'deanbusiness@gmail.com',
                 'password' => Hash::make('Dean@123'),
-                'role_id' => 2, // Dean role ID
-                'role' => 'dean',
-                'department' => 'College of Business Administration',
-                'company' => 'Mater Dei College',
+'role_id' => 2, // Dean role ID
+        'role' => 'dean',
+        'department_id' => 1,
+        'company_id' => 1,
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]
