@@ -29,11 +29,11 @@ export default function Users({ users, roles, departments, companies = [] }) {
 
     const filteredUsers = useMemo(() => {
         return users.filter((user) => {
-            const matchesSearch = !search || [user.name, user.email, user.department, user.company].some((value) => String(value || '').toLowerCase().includes(search.toLowerCase()));
+            const matchesSearch = !search || [user.name, user.email, user.department, user.company_name || user.company].some((value) => String(value || '').toLowerCase().includes(search.toLowerCase()));
             const matchesRole = !roleFilter || user.role === roleFilter;
             const matchesStatus = !statusFilter || user.status.toLowerCase() === statusFilter;
             const matchesDepartment = !departmentFilter || user.department === departmentFilter;
-            const matchesCompany = !companyFilter || user.company === companyFilter;
+            const matchesCompany = !companyFilter || (user.company_name || user.company) === companyFilter;
 
             return matchesSearch && matchesRole && matchesStatus && matchesDepartment && matchesCompany;
         });
@@ -142,7 +142,7 @@ export default function Users({ users, roles, departments, companies = [] }) {
                                                 {user.department || 'N/A'}
                                             </td>
                                             <td className="px-3 py-4 text-sm text-gray-600 whitespace-nowrap">
-{user.company || 'N/A'}
+{user.company_name || user.company || 'N/A'}
                                             </td>
                                             <td className="px-3 py-4 text-sm text-gray-600 whitespace-nowrap text-center">{user.tasks}</td>
                                             <td className="px-3 py-4 text-sm text-gray-600 whitespace-nowrap">{user.joined}</td>

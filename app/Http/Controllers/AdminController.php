@@ -176,8 +176,8 @@ class AdminController extends Controller
             'title' => $task->name,
             'description' => $task->description,
             'assigned_to' => $task->supervisor?->name ?? 'Unassigned',
-            'company' => $task->supervisor?->departmentRecord?->company ?? $task->supervisor?->company ?? 'N/A',
-            'department' => $task->supervisor?->departmentRecord?->name ?? $task->supervisor?->department ?? 'N/A',
+'company' => $task->supervisor?->company?->name ?? 'N/A',
+'department' => $task->supervisor?->departmentRecord?->name ?? ($task->supervisor?->department ?? 'N/A'),
             'due_date' => optional($task->due_date)?->format('M d, Y') ?? 'No due date',
             'due_date_raw' => optional($task->due_date)?->format('Y-m-d'),
             'status' => $status,
@@ -198,10 +198,9 @@ class AdminController extends Controller
 
     private function companyNames(): array
     {
-        return Department::query()
-            ->whereNotNull('company')
-            ->orderBy('company')
-            ->pluck('company')
+        return \App\Models\Company::where('is_active', true)
+            ->orderBy('name')
+            ->pluck('name')
             ->unique()
             ->values()
             ->all();

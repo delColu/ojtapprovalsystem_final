@@ -82,7 +82,6 @@ class SupervisorController extends Controller
         abort_unless($user && $user->isSupervisor(), 403, 'Unauthorized');
 
         $supervisorId = $user->id;
-        $companyName = $user->company ?? $user->departmentRecord?->company;
         $search = trim((string) $request->string('search'));
 
         $submissionScope = Submission::query()
@@ -153,24 +152,19 @@ class SupervisorController extends Controller
 
         $interns = User::query()
             ->where('role', 'student')
+            ->where('department_id', $user->department_id)
+            ->where('company_id', $user->company_id)
             ->withCount(['submissions as submissions_count' => fn ($query) => $query->whereHas('folder', fn ($folderQuery) => $folderQuery->where('supervisor_id', $supervisorId))])
             ->orderBy('name')
             ->get()
-            ->filter(function (User $intern) use ($companyName) {
-                if (blank($companyName)) {
-                    return true;
-                }
-
-                return $this->normalizeCompany($intern->company) === $this->normalizeCompany($companyName);
-            })
             ->map(function (User $intern) {
-                $department = $intern->department;
-                $company = $intern->company;
+$department = $intern->department?->name;
+        $company = $intern->company?->name;
 
-                if (blank($department) && filled($company) && str_contains(strtoupper($company), 'CAST')) {
-                    $department = 'CAST';
-                    $company = null;
-                }
+        if (blank($department) && filled($company) && str_contains(strtoupper($company), 'CAST')) {
+            $department = 'CAST';
+            $company = null;
+        }
 
                 return [
                     'id' => $intern->id,
@@ -200,10 +194,7 @@ class SupervisorController extends Controller
         ];
     }
 
-    private function normalizeCompany(?string $company): string
-    {
-        return strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) $company));
-    }
+
 
     private function mapSubmission(Submission $submission): array
     {

@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\Company;
+use App\Models\Department;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -32,7 +34,21 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'role' => $request->user()->role,
+                    'role_id' => $request->user()->role_id,
+                    'department_id' => $request->user()->department_id,
+                    'department' => $request->user()->department,
+'department_name' => $request->user()->department_id ? (Department::find($request->user()->department_id)?->name ?? $request->user()->department) : $request->user()->department,
+                    'company_id' => $request->user()->company_id,
+'company_name' => $request->user()->company_id ? (Company::find($request->user()->company_id)?->name ?? null) : null,
+                    'student_id' => $request->user()->student_id,
+                    'supervisor_id' => $request->user()->supervisor_id,
+                    'is_active' => $request->user()->is_active,
+                ] : null,
             ],
             'notifications' => fn () => $request->user()
                 ? $request->user()

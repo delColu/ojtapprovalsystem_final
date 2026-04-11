@@ -99,10 +99,10 @@ class DashboardController extends Controller
                 'recentReports' => $recentReports,
                 'availableFolders' => $availableFolders,
                 'notifications' => $notifications,
-                'companies' => $companies,
+'companies' => $companies,
                 'currentCompany' => [
                     'name' => $user->company,
-                    'address' => $companies->firstWhere('name', $user->company)['address'] ?? null,
+                    'address' => '',
                 ],
             ]);
         }
