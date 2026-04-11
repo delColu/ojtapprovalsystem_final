@@ -23,6 +23,10 @@ class FolderController extends Controller
 
         if ($user->isStudent()) {
             $folders = Folder::query()
+                ->whereHas('supervisor', function ($query) use ($user) {
+                    $query->where('department_id', $user->department_id)
+                          ->where('company_id', $user->company_id);
+                })
                 ->where(function ($query) {
                     $query->whereNull('due_date')
                         ->orWhereDate('due_date', '>=', today());
@@ -89,7 +93,10 @@ class FolderController extends Controller
             'reopened_at' => null,
         ]);
 
-        $students = User::where('role', 'student')->get();
+$students = User::where('role', 'student')
+                ->where('department_id', $folder->supervisor->department_id)
+                ->where('company_id', $folder->supervisor->company_id)
+                ->get();
 
         foreach ($students as $student) {
             Notification::create([
@@ -154,7 +161,10 @@ class FolderController extends Controller
 
         $folder->update($payload);
 
-        $students = User::where('role', 'student')->get();
+$students = User::where('role', 'student')
+                ->where('department_id', $folder->supervisor->department_id)
+                ->where('company_id', $folder->supervisor->company_id)
+                ->get();
 
         foreach ($students as $student) {
             Notification::create([
@@ -184,7 +194,10 @@ class FolderController extends Controller
             'reopened_at' => now(),
         ]);
 
-        $students = User::where('role', 'student')->get();
+$students = User::where('role', 'student')
+                ->where('department_id', $folder->supervisor->department_id)
+                ->where('company_id', $folder->supervisor->company_id)
+                ->get();
         $title = 'Folder Reopened';
         $message = "Folder '{$folder->name}' was reopened by your supervisor and is available for submission again.";
 
@@ -215,7 +228,10 @@ class FolderController extends Controller
         $folderName = $folder->name;
         $folderId = $folder->id;
 
-        $students = User::where('role', 'student')->get();
+$students = User::where('role', 'student')
+                ->where('department_id', $folder->supervisor->department_id)
+                ->where('company_id', $folder->supervisor->company_id)
+                ->get();
 
         foreach ($students as $student) {
             Notification::create([
@@ -238,7 +254,19 @@ class FolderController extends Controller
 
     private function authorizeFolder(Folder $folder)
     {
-        if ($folder->supervisor_id !== Auth::id()) {
+        $user = Auth::user();
+
+        if ($user->isSupervisor()) {
+            if ($folder->supervisor_id !== $user->id) {
+                abort(403);
+            }
+        } elseif ($user->isStudent()) {
+            if (! $folder->supervisor()->where('department_id', $user->department_id)
+                                    ->where('company_id', $user->company_id)
+                                    ->exists()) {
+                abort(403);
+            }
+        } else {
             abort(403);
         }
     }

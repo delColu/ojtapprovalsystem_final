@@ -20,7 +20,7 @@ class DeanUserSeeder extends Seeder
         'name' => 'Dr. Robert Martinez',
         'email' => 'dean@gmail.com',
         'password' => Hash::make('dean@123'),
-'role_id' => 2,
+        'role_id' => 2,
         'role' => 'dean',
         'department_id' => 1,
         'company_id' => 1,

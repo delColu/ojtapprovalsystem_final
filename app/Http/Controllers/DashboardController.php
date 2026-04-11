@@ -46,19 +46,45 @@ class DashboardController extends Controller
                     ];
                 });
 
-            $availableFolders = Folder::query()
-                ->where(function ($query) {
-                    $query->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                })
-                ->orWhere(function ($query) {
-                    $query->whereNotNull('due_date')
-                        ->whereDate('due_date', '<', today())
-                        ->where('is_reopened', true);
-                })
-                ->with('supervisor')
-                ->get()
-                ->map(function($folder) {
+            if (!$user->department_id || !$user->company_id) {
+                $availableFolders = collect();
+            } else {
+                $rawFolders = Folder::query()
+                    ->where(function ($query) {
+                        $query->whereNull('due_date')
+                            ->orWhereDate('due_date', '>=', today());
+                    })
+                    ->orWhere(function ($query) {
+                        $query->whereNotNull('due_date')
+                            ->whereDate('due_date', '<', today())
+                            ->where('is_reopened', true);
+                    })
+                    ->whereHas('supervisor', function ($query) use ($user) {
+                        $query->where('department_id', $user->department_id)
+                              ->where('company_id', $user->company_id);
+                    })
+                    ->with('supervisor')
+                    ->get();
+
+                // DEBUG: Log folders found and policy check
+                \Illuminate\Support\Facades\Log::info('Dashboard folders for student ' . $user->id . ' (dept:' . $user->department_id . ', company:' . $user->company_id . ')', [
+                    'count' => $rawFolders->count(),
+                    'user_dept' => $user->department_id,
+                    'user_company' => $user->company_id,
+                    'folders' => $rawFolders->map(fn($f) => [
+                        'id' => $f->id,
+                        'name' => $f->name,
+                        'supervisor_id' => $f->supervisor_id,
+                        'supervisor_dept' => $f->supervisor->department_id,
+                        'supervisor_company' => $f->supervisor->company_id,
+                        'policy_can_view' => $user->can('view', $f)
+                    ])
+                ]);
+
+                // Apply policy filter for extra safety
+                $rawFolders = $rawFolders->filter(fn($folder) => $user->can('view', $folder));
+
+                $availableFolders = $rawFolders->map(function($folder) {
                     return [
                         'id' => $folder->id,
                         'name' => $folder->name,
@@ -68,6 +94,7 @@ class DashboardController extends Controller
                         'is_reopened' => $folder->is_reopened,
                     ];
                 });
+            }
 
             $notifications = $user->notifications()
                 ->latest()
@@ -213,19 +240,45 @@ class DashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Only students can submit reports.');
         }
 
-        $availableFolders = Folder::query()
-            ->where(function ($query) {
-                $query->whereNull('due_date')
-                    ->orWhereDate('due_date', '>=', today());
-            })
-            ->orWhere(function ($query) {
-                $query->whereNotNull('due_date')
-                    ->whereDate('due_date', '<', today())
-                    ->where('is_reopened', true);
-            })
-            ->with('supervisor')
-            ->get()
-            ->map(function($folder) {
+        if (!$user->department_id || !$user->company_id) {
+            $availableFolders = collect();
+        } else {
+                $rawFolders = Folder::query()
+                ->where(function ($query) {
+                    $query->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                })
+                ->orWhere(function ($query) {
+                    $query->whereNotNull('due_date')
+                        ->whereDate('due_date', '<', today())
+                        ->where('is_reopened', true);
+                })
+                ->whereHas('supervisor', function ($query) use ($user) {
+                    $query->where('department_id', $user->department_id)
+                          ->where('company_id', $user->company_id);
+                })
+                ->with('supervisor')
+                ->get();
+
+            // DEBUG: Log folders found and policy check (submit-reports method)
+            \Illuminate\Support\Facades\Log::info('SubmitReports folders for student ' . $user->id . ' (dept:' . $user->department_id . ', company:' . $user->company_id . ')', [
+                'count' => $rawFolders->count(),
+                'user_dept' => $user->department_id,
+                'user_company' => $user->company_id,
+                'folders' => $rawFolders->map(fn($f) => [
+                    'id' => $f->id,
+                    'name' => $f->name,
+                    'supervisor_id' => $f->supervisor_id,
+                    'supervisor_dept' => $f->supervisor->department_id,
+                    'supervisor_company' => $f->supervisor->company_id,
+                    'policy_can_view' => $user->can('view', $f)
+                ])
+            ]);
+
+            // Apply policy filter for extra safety
+            $rawFolders = $rawFolders->filter(fn($folder) => $user->can('view', $folder));
+
+            $availableFolders = $rawFolders->map(function($folder) {
                 return [
                     'id' => $folder->id,
                     'name' => $folder->name,
@@ -235,6 +288,7 @@ class DashboardController extends Controller
                     'is_reopened' => $folder->is_reopened,
                 ];
             });
+        }
 
         return Inertia::render('Student/SubmitReports', [
             'availableFolders' => $availableFolders

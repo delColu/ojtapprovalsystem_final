@@ -303,7 +303,8 @@ export default function MyReports({ reports = [] }) {
                                             href={route('submit-reports')}
                                             className="flex items-center justify-center gap-2 text-sm font-bold text-white"
                                         >
-                                            <PlusCircleIcon className="h-6 w-5"  justify-center gap-6/>
+                                            <PlusCircleIcon className="h-6 w-5 justify-center gap-6" />
+
                                             Submit New Report
                                         </Link>
                                     </div>

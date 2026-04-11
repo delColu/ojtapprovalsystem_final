@@ -92,7 +92,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Folders routes
-    Route::resource('folders', FolderController::class);
+Route::resource('folders', FolderController::class)->middleware('can:viewAny,App\\Models\\Folder');
     Route::post('/folders/{folder}/toggle-reopen', [FolderController::class, 'toggleReopen'])->name('folders.toggle-reopen');
 
     // Dean routes
