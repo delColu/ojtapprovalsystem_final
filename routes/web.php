@@ -125,6 +125,7 @@ Route::resource('folders', FolderController::class)->middleware('can:viewAny,App
         Route::get('/activity-logs', [AdminController::class, 'activityLogs'])->name('admin.activity-logs.index');
         Route::resource('users', UserController::class);
         Route::resource('companies', \App\Http\Controllers\CompanyController::class);
+        Route::resource('departments', \App\Http\Controllers\DepartmentController::class);
         Route::get('/users/export-pdf', [UserController::class, 'exportPdf'])->name('admin.users.export-pdf');
         Route::get('/reports', [UserController::class, 'reports'])->name('admin.reports.index');
     });

@@ -34,13 +34,28 @@ class User extends Authenticatable
         'role_id',
         'department_id',
         'password',
-        'department',
+        // 'department',  // Removed: No DB column, use departmentRecord->name accessor
         'company_id',
         'student_id',
         'supervisor_id',
         'is_active',
         'email_verified_at',
     ];
+
+    public function getDepartmentAttribute(): ?string
+    {
+        return $this->departmentRecord?->name;
+    }
+
+    public function getCompanyAttribute(): ?string
+    {
+        return $this->departmentRecord?->company ?? $this->companyRecord?->name ?? null;
+    }
+
+    public function companyRecord(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
 
     protected $hidden = [
         'password',

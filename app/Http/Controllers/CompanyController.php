@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
+use App\Models\Notification;
+use App\Models\User;
 
 class CompanyController extends Controller
 {
@@ -66,7 +68,36 @@ class CompanyController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        $oldName = $company->getOriginal('name');
         $company->update($request->only(['name', 'address', 'is_active']));
+
+        // Update user company cache if name changed
+        if ($oldName !== $company->name) {
+            User::where('company_id', $company->id)->update(['company' => $company->name]);
+        }
+
+        // Notify users about changes
+        $users = User::where('company_id', $company->id)
+                     ->where('is_active', true)
+                     ->get();
+
+        foreach ($users as $user) {
+            $message = [];
+            if ($oldName !== $company->name) {
+                $message[] = "Company '{$oldName}' renamed to '{$company->name}'";
+            }
+            if ($company->wasChanged('is_active')) {
+                $status = $company->is_active ? 'Active' : 'Inactive';
+                $message[] = "Status changed to {$status}";
+            }
+            Notification::create([
+                'user_id' => $user->id,
+                'title' => 'Company Updated',
+                'message' => implode('. ', $message) . '.',
+                'type' => 'company_update',
+                'data' => ['company_id' => $company->id, 'new_name' => $company->name],
+            ]);
+        }
 
         ActivityLog::create([
             'user_id' => Auth::id(),
@@ -98,7 +129,9 @@ class CompanyController extends Controller
 
     private function assertAdmin(): void
     {
-        abort_unless(Auth::user()?->isAdmin(), 403);
+        if (!Auth::user() || !Auth::user()->isAdmin()) {
+            abort(403, 'Admin access required.');
+        }
     }
 }
 

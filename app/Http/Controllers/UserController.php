@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Company;
 use App\Models\Submission;
+use App\Models\Notification;
 use Inertia\Inertia;
 
 class UserController extends Controller
@@ -41,7 +42,7 @@ class UserController extends Controller
                     'department_id' => $user->department_id,
                     'department' => $user->departmentRecord?->name ?? $user->department,
                     'company_id' => $user->company_id,
-'company' => $user->company?->name ?? null,
+'company' => $user->company ?? null,
                     'tasks' => $taskStats,
                     'joined' => optional($user->created_at)?->format('M j, Y'),
                     'status' => $user->is_active ? 'Active' : 'Inactive',
@@ -88,7 +89,7 @@ class UserController extends Controller
             'role_id'    => $request->role_id,
             'role'       => $role->name,
             'department_id' => $department?->id,
-            'department' => $department?->name,
+            // 'department' => $department?->name,  // Handled by accessor
             'company_id' => $company?->id,
             'student_id' => $request->student_id,
             'is_active'  => $request->boolean('is_active', true),
@@ -126,17 +127,68 @@ class UserController extends Controller
 
         $company = $request->filled('company_id') ? Company::find($request->company_id) : null;
 
+        // Capture old values before update - use static finds
+        $oldDeptId = $user->department_id;
+        $oldCompanyId = $user->company_id;
+        $oldDeptName = $oldDeptId ? Department::find($oldDeptId)->name : null;
+        $oldCompanyName = $oldCompanyId ? Company::find($oldCompanyId)->name : null;
+
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
             'role_id' => $request->role_id,
             'role' => $role->name,
             'department_id' => $department?->id,
-'department_id' => $department?->id,
             'company_id' => $company?->id,
             'student_id' => $role->name === 'student' ? $request->student_id : null,
             'is_active' => $request->boolean('is_active'),
         ]);
+
+        // Notify if department or company assignment changed (students/supervisors only)
+        $deptChanged = $oldDeptId != $user->department_id;
+        $companyChanged = $oldCompanyId != $user->company_id;
+
+        $newDeptId = $user->department_id;
+        $newCompanyId = $user->company_id;
+        $newDeptName = $newDeptId ? Department::find($newDeptId)->name : null;
+        $newCompanyName = $newCompanyId ? Company::find($newCompanyId)->name : null;
+
+        if (($deptChanged || $companyChanged) && in_array($user->role, ['student', 'supervisor'])) {
+            $messageParts = [];
+            if ($deptChanged) {
+                if ($oldDeptName && $newDeptName) {
+                    $messageParts[] = "department changed from '{$oldDeptName}' to '{$newDeptName}'";
+                } elseif (!$oldDeptName && $newDeptName) {
+                    $messageParts[] = "department assigned to '{$newDeptName}'";
+                } elseif ($oldDeptName && !$newDeptName) {
+                    $messageParts[] = "department unassigned (was '{$oldDeptName}')";
+                }
+            }
+            if ($companyChanged) {
+                if ($oldCompanyName && $newCompanyName) {
+                    $messageParts[] = "company changed from '{$oldCompanyName}' to '{$newCompanyName}'";
+                } elseif (!$oldCompanyName && $newCompanyName) {
+                    $messageParts[] = "company assigned to '{$newCompanyName}'";
+                } elseif ($oldCompanyName && !$newCompanyName) {
+                    $messageParts[] = "company unassigned (was '{$oldCompanyName}')";
+                }
+            }
+
+            if ($messageParts) {
+                Notification::create([
+                    'user_id' => $user->id,
+                    'title' => 'Your Department/Company Assignment Updated',
+                    'message' => implode('. ', $messageParts) . '.',
+                    'type' => 'user_assignment_update',
+                    'data' => [
+                        'old_department_id' => $oldDeptId,
+                        'new_department_id' => $user->department_id,
+                        'old_company_id' => $oldCompanyId,
+                        'new_company_id' => $user->company_id,
+                    ],
+                ]);
+            }
+        }
 
         ActivityLog::create([
             'user_id'    => Auth::id(),

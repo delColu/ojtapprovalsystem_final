@@ -144,6 +144,7 @@ export default function AuthenticatedLayout({ header, children }) {
         if (component === 'Admin/Dashboard') return 'See platform-wide activity, user totals, and recent operational updates.';
         if (component === 'Admin/Users') return 'Manage user accounts, roles, departments, and account status across the system.';
         if (component === 'Admin/Tasks') return 'Oversee all created tasks, deadlines, and report folder activity.';
+        if (component === 'Admin/Departments') return 'Manage department records used for user assignments and organization.';
         if (component === 'Admin/ActivityLogs') return 'Audit important actions and system events across every role.';
 
         if (component === 'Notifications/Index') return 'Review all recent alerts, updates, and workflow activity in one place.';
@@ -184,7 +185,8 @@ export default function AuthenticatedLayout({ header, children }) {
             ],
             admin: [
                 { name: 'Dashboard', href: route('admin.dashboard'), icon: HomeIcon },
-{ name: 'Users', href: '/admin/users', icon: UsersIcon },
+                { name: 'Users', href: '/admin/users', icon: UsersIcon },
+                { name: 'Departments', href: '/admin/departments', icon: BuildingLibraryIcon },
                 { name: 'Companies', href: '/admin/companies', icon: BriefcaseIcon },
                 { name: 'All Tasks', href: route('admin.tasks.index'), icon: ClipboardDocumentListIcon },
                 { name: 'Activity Logs', href: route('admin.activity-logs.index'), icon: ChartBarIcon },
@@ -214,6 +216,7 @@ export default function AuthenticatedLayout({ header, children }) {
         if (href === '/admin/companies' && url.startsWith('/admin/companies')) return true;
         if (href === route('admin.tasks.index') && url.startsWith('/admin/tasks')) return true;
         if (href === route('admin.activity-logs.index') && url.startsWith('/admin/activity-logs')) return true;
+        if (href === '/admin/departments' && url.startsWith('/admin/departments')) return true;
         if (href === '/submit-reports' && (url === '/submit-reports' || component === 'Student/SubmitReports')) return true;
         if (href === '/my-reports' && (url === '/my-reports' || component === 'Student/MyReports')) return true;
         if (href === '/folders' && url === '/folders') return true;

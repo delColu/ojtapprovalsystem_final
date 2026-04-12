@@ -283,8 +283,8 @@ class DeanController extends Controller
             'role_id' => Role::query()->where('name', 'supervisor')->value('id'),
             'role' => 'supervisor',
             'department_id' => $department->id,
-            'department' => $department->name,
-            'company' => $department->company,
+            // 'department' => $department->name,  // Use accessor: $user->departmentRecord->name
+            // 'company' => $department->company,  // Use accessor: $user->departmentRecord->company
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -308,8 +308,8 @@ class DeanController extends Controller
             'name' => $data['name'],
             'email' => strtolower($data['email']),
             'department_id' => $department->id,
-            'department' => $department->name,
-            'company' => $department->company,
+            // 'department' => $department->name,  // Use accessor
+            // 'company' => $department->company,  // Use accessor
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -350,7 +350,7 @@ class DeanController extends Controller
             'role' => 'student',
             'student_id' => $data['student_id'],
             'department_id' => $department->id,
-            'department' => $department->name,
+            // 'department' => $department->name,  // Use accessor
             'company' => $data['company'] ?: $department->company,
             'supervisor_id' => $supervisor?->id,
             'is_active' => $request->boolean('is_active', true),
@@ -381,7 +381,7 @@ class DeanController extends Controller
             'email' => strtolower($data['email']),
             'student_id' => $data['student_id'],
             'department_id' => $department->id,
-            'department' => $department->name,
+            // 'department' => $department->name,  // Use accessor
             'company' => $data['company'] ?: $department->company,
             'supervisor_id' => $supervisor?->id,
             'is_active' => $request->boolean('is_active', true),
@@ -434,6 +434,8 @@ class DeanController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $oldName = $department->name;
+        $oldCompany = $department->company;
         $department->update([
             'name' => $data['name'],
             'company' => $data['company'] ?? null,
@@ -442,10 +444,37 @@ class DeanController extends Controller
             'is_active' => $request->boolean('is_active', true),
         ]);
 
-        User::query()->where('department_id', $department->id)->update([
-            'department' => $department->name,
-            'company' => $department->company,
-        ]);
+        // Removed: No 'department'/'company' DB columns on users. Use relationships/accessors
+        // User::query()->where('department_id', $department->id)->update([
+        //     'department' => $department->name,
+        //     'company' => $department->company,
+        // ]);
+
+        // Notify active users about name or company changes
+        $users = User::where('department_id', $department->id)
+                     ->where('is_active', true)
+                     ->pluck('id');
+
+        if ($users->isNotEmpty() && ($oldName !== $department->name || $oldCompany !== $department->company)) {
+            $notifications = $users->map(function ($userId) use ($department, $oldName, $oldCompany) {
+                $message = "Your department '{$oldName}' has been updated to '{$department->name}'";
+                if ($oldCompany !== $department->company) {
+                    $message .= ". Company changed to '{$department->company}'";
+                }
+                return [
+                    'user_id' => $userId,
+                    'title' => 'Department Updated',
+                    'message' => $message,
+                    'type' => 'department_update',
+                    'data' => ['department_id' => $department->id, 'new_name' => $department->name, 'new_company' => $department->company],
+                    'is_read' => false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            })->toArray();
+
+            \App\Models\Notification::insert($notifications);
+        }
 
         return back()->with('success', 'Department updated successfully.');
     }
@@ -454,9 +483,9 @@ class DeanController extends Controller
     {
         $this->assertDeanOwnsDepartment($department);
 
+        // Set only department_id to null (column exists), skip phantom columns
         User::query()->where('department_id', $department->id)->update([
             'department_id' => null,
-            'department' => null,
         ]);
 
         $department->delete();
