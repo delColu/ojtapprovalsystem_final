@@ -96,13 +96,13 @@ class SupervisorController extends Controller
 
         $pendingSubmissions = (clone $submissionScope)
             ->where('status', 'pending')
-            ->with(['student', 'folder'])
+            ->with(['student', 'folder', 'supervisor', 'dean'])
             ->latest()
             ->get()
             ->map(fn (Submission $submission) => $this->mapSubmission($submission));
 
         $reports = (clone $submissionScope)
-            ->with(['student', 'folder'])
+            ->with(['student', 'folder', 'supervisor', 'dean'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($nestedQuery) use ($search) {
                     $nestedQuery
@@ -117,7 +117,7 @@ class SupervisorController extends Controller
             ->map(fn (Submission $submission) => $this->mapSubmission($submission));
 
         $recentActivities = (clone $submissionScope)
-            ->with('student')
+            ->with(['student', 'supervisor', 'dean'])
             ->latest()
             ->take(10)
             ->get()
@@ -158,13 +158,13 @@ class SupervisorController extends Controller
             ->orderBy('name')
             ->get()
             ->map(function (User $intern) {
-$department = $intern->department?->name;
-        $company = $intern->company?->name;
+                $department = $intern->department;
+                $company = $intern->company;
 
-        if (blank($department) && filled($company) && str_contains(strtoupper($company), 'CAST')) {
-            $department = 'CAST';
-            $company = null;
-        }
+                if (blank($department) && filled($company) && str_contains(strtoupper($company), 'CAST')) {
+                    $department = 'CAST';
+                    $company = null;
+                }
 
                 return [
                     'id' => $intern->id,
@@ -193,8 +193,6 @@ $department = $intern->department?->name;
             'search' => $search,
         ];
     }
-
-
 
     private function mapSubmission(Submission $submission): array
     {
@@ -234,3 +232,4 @@ $department = $intern->department?->name;
         ];
     }
 }
+

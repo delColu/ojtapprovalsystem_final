@@ -564,28 +564,13 @@ class DeanController extends Controller
 
     private function departmentIds(User $dean): array
     {
-        $ids = Department::query()->where('dean_id', $dean->id)->pluck('id')->all();
-
-        if ($ids === [] && filled($dean->department)) {
-            if ($this->isCastDean($dean)) {
-                $ids = Department::query()->where('name', 'CAST')->pluck('id')->all();
-            } else {
-                $ids = Department::query()->where('name', $dean->department)->pluck('id')->all();
-            }
+        if ($dean->department_id) {
+            return [$dean->department_id];
         }
-
-        return $ids;
+        return Department::where('dean_id', $dean->id)->pluck('id')->toArray();
     }
 
-    private function isCastDean(User $dean): bool
-    {
-        $department = strtolower((string) $dean->department);
 
-        return str_contains($department, 'arts')
-            || str_contains($department, 'sciences')
-            || str_contains($department, 'technology')
-            || $department === 'cast';
-    }
 
     private function submissionScope(array $departmentIds)
     {

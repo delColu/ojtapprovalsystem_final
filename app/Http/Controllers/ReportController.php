@@ -13,7 +13,7 @@ class ReportController extends Controller
     {
         $user = Auth::user();
 
-        $reports = Submission::where('student_id', $user->id)
+$reports = Submission::where('student_id', $user->id)
             ->with(['folder', 'supervisor', 'dean'])
             ->orderBy('created_at', 'desc')
             ->get()
@@ -23,8 +23,8 @@ class ReportController extends Controller
                     'title' => $submission->title,
                     'description' => $submission->description,
                     'status' => $submission->status,
-                    'folder_name' => $submission->folder->name ?? 'No Folder',
-                    'submitted_at' => $submission->created_at->format('Y-m-d H:i'),
+                    'folder_name' => $submission->folder?->name ?? 'No Folder',
+                    'submitted_at' => $submission->created_at?->format('Y-m-d H:i'),
                     'file_path' => $submission->file_path,
                     'file_name' => $submission->file_name ?: ($submission->file_path ? basename($submission->file_path) : null),
                     'feedback' => $submission->feedback,

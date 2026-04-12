@@ -1,11 +1,12 @@
-# OJT Approval System - Department/Company Change Notifications
+# Fix Edit Function in MyReports
 
-## Task: Notify users (students/supervisors only) when their department or company is changed
+## Plan Steps:
+- [x] Step 1: Update SubmissionController::update method to return Inertia-compatible JSON response instead of redirect()
 
-### Steps:
-- [x] 1. Add notification logic to UserController::update() method for department_id/company_id changes
-- [ ] 2. Fix notification to use correct old/new names (capture before update)
-- [ ] 3. Test the implementation
-- [ ] 4. Mark complete
+**Current Progress: Investigating why no save/no errors. Added more logging & route check. Check browser Network tab F12 for request/response to submissions/{id}.**
+- [x] Step 2: Fixed all cases - success/no-changes now return full Inertia MyReports page with fresh data + flash messages.
+- [ ] Step 3: Verify file upload works during edit
+- [ ] Step 4: Check frontend reloads updated reports correctly
+- [ ] Step 5: Complete task with attempt_completion
 
-**Current step: 2/4**
+**Current Progress: Starting Step 1**

@@ -134,7 +134,8 @@ export default function Interns({ interns, departments, filters }) {
                                     <th className="px-4 py-3 font-semibold">#</th>
                                     <th className="px-4 py-3 font-semibold">Name</th>
                                     <th className="px-4 py-3 font-semibold">Student ID</th>
-                                    <th className="px-4 py-3 font-semibold">Department / Company</th>
+                                    <th className="px-4 py-3 font-semibold">Department</th>
+                                    <th className="px-4 py-3 font-semibold">Company</th>
                                     <th className="px-4 py-3 font-semibold text-center">Submissions</th>
                                     <th className="px-4 py-3 font-semibold text-center">Approved</th>
                                     <th className="px-4 py-3 font-semibold text-center">Status</th>
@@ -151,9 +152,9 @@ export default function Interns({ interns, departments, filters }) {
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-600">{intern.student_id || '—'}</td>
                                             <td className="px-4 py-3">
-                                                <p className="text-sm text-gray-800">{intern.department?.name || 'Unassigned'}</p>
-                                                <p className="text-xs text-gray-500">{intern.company?.name || 'No company'}</p>
+                                                <p className="text-sm text-gray-800">{intern.department || 'Unassigned'}</p>
                                             </td>
+                                        <td className="px-4 py-3 text-sm text-gray-600">{intern.company || '—'}</td>
                                         <td className="px-4 py-3 text-center text-sm font-semibold text-gray-700">{intern.submitted || 0}</td>
                                         <td className="px-4 py-3 text-center text-sm font-semibold text-emerald-600">{intern.approved || 0}</td>
                                         <td className="px-4 py-3 text-center">
