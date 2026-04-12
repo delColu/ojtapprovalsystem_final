@@ -129,8 +129,8 @@ export default function Supervisors({ supervisors, departments, filters }) {
                                                 </span>
                                             </div>
                                             <p className="mt-1 text-xs text-slate-500">{supervisor.email}</p>
-                                            <p className="mt-2 text-sm text-slate-600">Department: {supervisor.department || 'Unassigned'}</p>
-                                            <p className="mt-1 text-sm text-slate-600">Company: {supervisor.company || 'No company assigned'}</p>
+                                            <p className="mt-2 text-sm text-slate-600">Department: {supervisor.department?.name || 'Unassigned'}</p>
+                                            <p className="mt-1 text-sm text-slate-600">Company: {supervisor.company?.name || 'No company assigned'}</p>
                                         </div>
                                     </div>
                                     <StatusBadge status={supervisor.is_active ? 'Active' : 'Inactive'} />

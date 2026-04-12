@@ -150,10 +150,10 @@ export default function Interns({ interns, departments, filters }) {
                                             <p className="text-xs text-gray-500">{intern.email}</p>
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-600">{intern.student_id || '—'}</td>
-                                        <td className="px-4 py-3">
-                                            <p className="text-sm text-gray-800">{intern.department || 'Unassigned'}</p>
-                                            <p className="text-xs text-gray-500">{intern.company || 'No company'}</p>
-                                        </td>
+                                            <td className="px-4 py-3">
+                                                <p className="text-sm text-gray-800">{intern.department?.name || 'Unassigned'}</p>
+                                                <p className="text-xs text-gray-500">{intern.company?.name || 'No company'}</p>
+                                            </td>
                                         <td className="px-4 py-3 text-center text-sm font-semibold text-gray-700">{intern.submitted || 0}</td>
                                         <td className="px-4 py-3 text-center text-sm font-semibold text-emerald-600">{intern.approved || 0}</td>
                                         <td className="px-4 py-3 text-center">
