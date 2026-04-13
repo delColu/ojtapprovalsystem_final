@@ -74,6 +74,8 @@ class SubmissionController extends Controller
 
     public function update(Request $request, Submission $submission)
     {
+        \Log::info('Update request data:', $request->all());
+        \Log::info('Update request files:', $request->allFiles());
         if ($submission->student_id !== Auth::id() && ! Auth::user()->isAdmin()) {
             abort(403);
         }

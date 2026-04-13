@@ -1,12 +1,12 @@
-# Fix Edit Function in MyReports
+# OJT Approval System - Fix MyReports Edit Error
 
-## Plan Steps:
-- [x] Step 1: Update SubmissionController::update method to return Inertia-compatible JSON response instead of redirect()
+## Task: Fix "Cannot read properties of undefined (reading 'post')" in submitEdit (MyReports.jsx)
 
-**Current Progress: Investigating why no save/no errors. Added more logging & route check. Check browser Network tab F12 for request/response to submissions/{id}.**
-- [x] Step 2: Fixed all cases - success/no-changes now return full Inertia MyReports page with fresh data + flash messages.
-- [ ] Step 3: Verify file upload works during edit
-- [ ] Step 4: Check frontend reloads updated reports correctly
-- [ ] Step 5: Complete task with attempt_completion
+### Steps:
+- [ ] 1. Create TODO.md (tracking progress)
+- [x] 2. Fix submitEdit function in resources/js/Pages/Student/MyReports.jsx
+- [x] 3. Verify fix and test edit functionality
+- [x] 4. Update TODO.md with completion
+- [ ] 5. Attempt completion
 
-**Current Progress: Starting Step 1**
+**Status**: In progress

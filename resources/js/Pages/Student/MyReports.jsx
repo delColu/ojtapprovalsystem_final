@@ -176,7 +176,7 @@ export default function MyReports({ reports = [] }) {
     const [statusFilter, setStatusFilter] = useState('all');
     const [editingReport, setEditingReport] = useState(null);
 
-    const form = useForm({
+    const { data, setData, post, processing, reset, transform } = useForm({
         title: '',
         description: '',
         date: '',
@@ -211,7 +211,7 @@ export default function MyReports({ reports = [] }) {
 
     const openEdit = (report) => {
         setEditingReport(report);
-        form.setData({
+        setData({
             title: report.title || '',
             description: report.description || '',
             date: report.submitted_at?.slice(0, 10) || '',
@@ -220,17 +220,24 @@ export default function MyReports({ reports = [] }) {
         setSelectedReport(null);
     };
 
-    const submitEdit = (event) => {
+const submitEdit = (event) => {
         event.preventDefault();
-        form.transform((data) => ({
+        if (!editingReport?.id) {
+            console.error('No report ID for editing');
+            return;
+        }
+        post(route('submissions.update', editingReport.id), {
             ...data,
-            _method: 'put',
-        })).post(route('submissions.update', editingReport.id), {
+            _method: 'PUT',
+        }, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 setEditingReport(null);
-                form.reset();
+                reset();
+            },
+            onError: (errors) => {
+                console.error('Edit failed:', errors);
             },
         });
     };
@@ -525,8 +532,8 @@ export default function MyReports({ reports = [] }) {
                             <div>
                                 <label className="mb-1 block text-sm font-semibold text-slate-300">Title</label>
                                 <input
-                                    value={form.data.title}
-                                    onChange={(event) => form.setData('title', event.target.value)}
+                                    value={data.title}
+                                    onChange={(e) => setData('title', e.target.value)}
                                     className="w-full rounded-lg border border-slate-500/50 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-rose-500/40 focus:ring-2 focus:ring-rose-500/15"
                                     placeholder="Title"
                                 />
@@ -535,8 +542,8 @@ export default function MyReports({ reports = [] }) {
                             <div>
                                 <label className="mb-1 block text-sm font-semibold text-slate-300">Description</label>
                                 <textarea
-                                    value={form.data.description}
-                                    onChange={(event) => form.setData('description', event.target.value)}
+                                    value={data.description}
+                                    onChange={(e) => setData('description', e.target.value)}
                                     rows={4}
                                     className="w-full rounded-lg border border-slate-500/50 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-rose-500/40 focus:ring-2 focus:ring-rose-500/15"
                                     placeholder="Description"
@@ -547,8 +554,8 @@ export default function MyReports({ reports = [] }) {
                                 <label className="mb-1 block text-sm font-semibold text-slate-300">Date</label>
                                 <input
                                     type="date"
-                                    value={form.data.date}
-                                    onChange={(event) => form.setData('date', event.target.value)}
+                                    value={data.date}
+                                    onChange={(e) => setData('date', e.target.value)}
                                     className="w-full rounded-lg border border-slate-500/50 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-rose-500/40 focus:ring-2 focus:ring-rose-500/15"
                                 />
                             </div>
@@ -557,7 +564,7 @@ export default function MyReports({ reports = [] }) {
                                 <label className="mb-1 block text-sm font-semibold text-slate-300">Replace File</label>
                                 <input
                                     type="file"
-                                    onChange={(event) => form.setData('file', event.target.files[0])}
+                                    onChange={(e) => setData('file', e.target.files[0])}
                                     className="w-full text-sm text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-rose-600 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:bg-rose-500"
                                 />
                             </div>
@@ -572,10 +579,10 @@ export default function MyReports({ reports = [] }) {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={form.processing}
+                                    disabled={processing}
                                     className="rounded-lg bg-gradient-to-r from-rose-600 to-pink-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50 hover:from-rose-500 hover:to-pink-500"
                                 >
-                                    {form.processing ? 'Saving...' : 'Save'}
+{processing ? 'Saving...' : 'Save'}
                                 </button>
                             </div>
                         </form>
