@@ -101,7 +101,8 @@ export default function AuthenticatedLayout({ header, children }) {
         if (component === 'Dean/Interns') return 'Interns';
         if (component === 'Dean/Departments') return 'Departments';
         if (component === 'Dean/Submissions') return 'All Submissions';
-        if (component === 'Dean/Reports') return 'Reports';
+if (component === 'Dean/Reports') return 'Reports';
+        if (component === 'Dean/Companies') return 'Companies';
         if (component === 'Admin/Dashboard') return 'Dashboard';
         if (component === 'Admin/Users') return 'Users';
         if (component === 'Admin/Tasks') return 'All Tasks';
@@ -139,7 +140,8 @@ export default function AuthenticatedLayout({ header, children }) {
         if (component === 'Dean/Interns') return 'Track intern records, status updates, and department-level activity.';
         if (component === 'Dean/Departments') return 'Review departments, company assignments, and linked supervisor coverage.';
         if (component === 'Dean/Submissions') return 'Evaluate forwarded submissions that are waiting for dean review and action.';
-        if (component === 'Dean/Reports') return 'Browse finalized report records, outcomes, and decision history.';
+if (component === 'Dean/Reports') return 'Browse finalized report records, outcomes, and decision history.';
+        if (component === 'Dean/Companies') return 'View companies partnered with your department based on student assignments.';
 
         if (component === 'Admin/Dashboard') return 'See platform-wide activity, user totals, and recent operational updates.';
         if (component === 'Admin/Users') return 'Manage user accounts, roles, departments, and account status across the system.';
@@ -181,7 +183,8 @@ export default function AuthenticatedLayout({ header, children }) {
                 { name: 'Interns', href: route('dean.interns.index'), icon: AcademicCapIcon },
                 { name: 'Departments', href: route('dean.departments.index'), icon: BuildingLibraryIcon },
                 { name: 'All Submissions', href: route('dean.submissions.index'), icon: ClipboardDocumentListIcon },
-                { name: 'Reports', href: route('dean.reports.index'), icon: ChartBarIcon },
+{ name: 'Reports', href: route('dean.reports.index'), icon: ChartBarIcon },
+                { name: 'Companies', href: route('dean.companies.index'), icon: BriefcaseIcon },
             ],
             admin: [
                 { name: 'Dashboard', href: route('admin.dashboard'), icon: HomeIcon },
@@ -210,7 +213,8 @@ export default function AuthenticatedLayout({ header, children }) {
         if (href === route('dean.interns.index') && url.startsWith('/dean/interns')) return true;
         if (href === route('dean.departments.index') && url.startsWith('/dean/departments')) return true;
         if (href === route('dean.submissions.index') && url.startsWith('/dean/submissions')) return true;
-        if (href === route('dean.reports.index') && url.startsWith('/dean/reports')) return true;
+if (href === route('dean.reports.index') && url.startsWith('/dean/reports')) return true;
+        if (href === route('dean.companies.index') && url.startsWith('/dean/companies')) return true;
         if (href === route('admin.dashboard') && url === '/admin/dashboard') return true;
         if (href === '/admin/users' && url.startsWith('/admin/users')) return true;
         if (href === '/admin/companies' && url.startsWith('/admin/companies')) return true;

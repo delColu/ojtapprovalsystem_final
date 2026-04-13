@@ -241,6 +241,53 @@ public function interns(Request $request): Response
         return $this->submissionPage($request, 'Dean/Reports', false);
     }
 
+    public function companies(Request $request): Response
+    {
+        $dean = $this->deanUser();
+        $departmentIds = $this->departmentIds($dean);
+        $search = trim((string) $request->string('search'));
+        $partneredOnly = $request->boolean('partnered_only', false);
+
+        $companiesQuery = \App\Models\Company::whereHas('users', function ($query) use ($departmentIds) {
+                $query->where('role', 'student')
+                      ->whereIn('department_id', $departmentIds);
+            })
+            ->withCount(['users as student_count' => function ($query) use ($departmentIds) {
+                $query->where('role', 'student')
+                      ->whereIn('department_id', $departmentIds);
+            }])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%");
+            })
+            ->when($partneredOnly, function ($query) {
+                $query->having('student_count', '>', 0);
+            });
+
+        $companies = $companiesQuery
+            ->orderBy('name')
+            ->get()
+            ->map(function ($company) {
+                return [
+                    'id' => $company->id,
+                    'name' => $company->name,
+                    'address' => $company->address,
+                    'student_count' => $company->student_count ?? 0,
+                    'is_active' => $company->is_active,
+                    'status' => $company->is_active ? 'Active' : 'Inactive',
+                    'created_at' => $company->created_at?->format('M j, Y'),
+                ];
+            })
+            ->values();
+
+        return Inertia::render('Dean/Companies', [
+            'companies' => $companies,
+            'filters' => [
+                'search' => $search,
+                'partnered_only' => $partneredOnly,
+            ],
+        ]);
+    }
+
     public function downloadReportsPdf(Request $request)
     {
         $departmentIds = $this->departmentIds($this->deanUser());

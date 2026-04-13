@@ -1,16 +1,32 @@
-# OJT Approval System - Dean Assignment Updates
+# OJT Approval System - Make Dean Companies page match other Dean tables style
 
-## Task
-Update Admin/Users.jsx to auto-update department dean_id on dean assignment and prevent duplicate deans per department.
+## Task Overview
+Convert the table in `resources/js/Pages/Dean/Companies.jsx` to a card-grid layout matching the visual style of other Dean pages (Supervisors.jsx, Departments.jsx): blue theme (bg-[#0077b6]), PageIntro header, SearchField filters, rounded-2xl gradient cards, hover effects, StatusBadge, stats cards.
 
-## Implementation Steps
-- [x] 1. Update app/Http/Controllers/UserController.php index(): Add `with('dean:id,name')` to departments query.
-- [x] 2. Update UserController.php update(): Add validation and logic to set dept.dean_id if role='dean'.
-- [x] 3. Update UserController.php store(): Similar logic for new users.
-- [x] 4. Update resources/js/Pages/Admin/Users.jsx: Frontend validation (disable submit if dept has dean & role=dean unless editing self); error message.
-- [x] 5. Test: Backend auto-updates dept.dean_id; frontend/backend prevent duplicates.
+Current status: [ ] Not started
 
- ## Progress
-Fully implemented dean assignment logic with frontend/backend validation and auto-update. Changes complete.
+## Step-by-Step Plan
 
-**Next**: Run `php artisan serve` + test in browser (Admin > Users > Edit/Add dean).
+### Step 1: Update imports and layout structure
+- [ ] Import DeanShared components (PageIntro, SearchField, StatusBadge, EmptyState)
+- [ ] Change container to Dean standard: space-y-8 bg-[#0077b6] px-4 pt-6 pb-0 sm:px-6 lg:px-8
+- [ ] Replace header with PageIntro
+
+### Step 2: Update filters to Dean style
+- [ ] Replace TextInput with SearchField
+- [ ] Style checkbox filter to match DeanShared (rounded-xl blue focus)
+
+### Step 3: Replace table with card grid
+- [ ] Add EmptyState for no companies
+- [ ] Create responsive grid: lg:grid-cols-2 xl:grid-cols-3
+- [ ] Design cards: gradient bg, sky borders, avatar initial, name+#badge, address detail, students stat card, StatusBadge, View button
+
+### Step 4: Remove table code
+- [ ] Delete table, thead, tbody, TableHeading usage
+
+### Step 5: Test and verify
+- [ ] Run `npm run dev`
+- [ ] Check Dean/Companies page matches style
+- [ ] Mark complete and attempt_completion
+
+**Next step:** Step 1

@@ -113,6 +113,7 @@ Route::resource('folders', FolderController::class)->middleware('can:viewAny,App
         Route::get('/submissions', [DeanController::class, 'submissions'])->name('submissions.index');
         Route::get('/reports', [DeanController::class, 'reports'])->name('reports.index');
         Route::get('/reports/download-pdf', [DeanController::class, 'downloadReportsPdf'])->name('reports.download-pdf');
+        Route::get('/companies', [DeanController::class, 'companies'])->name('companies.index');
     });
 
     // Admin routes
