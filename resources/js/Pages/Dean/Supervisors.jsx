@@ -191,37 +191,35 @@ export default function Supervisors({ supervisors, departments, filters }) {
             <CrudModal open={modalOpen} title="Edit Supervisor" onClose={closeModal}>
                 <form onSubmit={submit} className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
-                        <label className="space-y-2 text-sm font-medium text-gray-700">
-                            <span>Name</span>
-                            <input
-                                value={form.data.name}
-                                onChange={(event) => form.setData('name', event.target.value)}
-                                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-[#0077b6] focus:ring-2 focus:ring-[#0077b6]/20"
-                            />
-                        </label>
-                        <label className="space-y-2 text-sm font-medium text-gray-700">
-                            <span>Email</span>
-                            <input
-                                value={form.data.email}
-                                onChange={(event) => form.setData('email', event.target.value)}
-                                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-[#0077b6] focus:ring-2 focus:ring-[#0077b6]/20"
-                            />
-                        </label>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 block">Name</label>
+                            <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 bg-gray-50">
+                                <p className="text-sm font-medium text-gray-900">
+                                    {editingSupervisor?.name || ''}
+                                </p>
+                                <input type="hidden" value={form.data.name || ''} />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 block">Email</label>
+                            <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 bg-gray-50">
+                                <p className="text-sm font-medium text-gray-900">
+                                    {editingSupervisor?.email || ''}
+                                </p>
+                                <input type="hidden" value={form.data.email || ''} />
+                            </div>
+                        </div>
                     </div>
 
-                    <label className="space-y-2 text-sm font-medium text-gray-700">
-                        <span>Department</span>
-                        <select
-                            value={form.data.department_id}
-                            onChange={(event) => form.setData('department_id', event.target.value)}
-                            className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-[#0077b6] focus:ring-2 focus:ring-[#0077b6]/20"
-                        >
-                            <option value="">Select department</option>
-                            {departments.map((option) => (
-                                <option key={option.id} value={option.id}>{option.name}</option>
-                            ))}
-                        </select>
-                    </label>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 block">Department</label>
+                        <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 bg-gray-50">
+                            <p className="text-sm font-medium text-gray-900">
+                                {editingSupervisor?.department || 'Unassigned'}
+                            </p>
+                            <input type="hidden" value={form.data.department_id || ''} />
+                        </div>
+                    </div>
 
                     <label className="flex items-center gap-3 rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-700">
                         <input

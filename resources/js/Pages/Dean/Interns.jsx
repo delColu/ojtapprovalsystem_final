@@ -187,14 +187,24 @@ export default function Interns({ interns, departments, companies, filters }) {
             <CrudModal open={modalOpen} title="Edit Intern" onClose={closeModal}>
                 <form onSubmit={submit} className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
-                        <label className="space-y-2 text-sm font-medium text-gray-700">
-                            <span>Name</span>
-                            <input value={form.data.name} onChange={(event) => form.setData('name', event.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-[#0077b6] focus:ring-2 focus:ring-[#0077b6]/20" />
-                        </label>
-                        <label className="space-y-2 text-sm font-medium text-gray-700">
-                            <span>Email</span>
-                            <input value={form.data.email} onChange={(event) => form.setData('email', event.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-[#0077b6] focus:ring-2 focus:ring-[#0077b6]/20" />
-                        </label>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 block">Name</label>
+                            <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 bg-gray-50">
+                                <p className="text-sm font-medium text-gray-900">
+                                    {editingIntern?.name || ''}
+                                </p>
+                                <input type="hidden" value={form.data.name || ''} />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 block">Email</label>
+                            <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 bg-gray-50">
+                                <p className="text-sm font-medium text-gray-900">
+                                    {editingIntern?.email || ''}
+                                </p>
+                                <input type="hidden" value={form.data.email || ''} />
+                            </div>
+                        </div>
                         <label className="space-y-2 text-sm font-medium text-gray-700">
                             <span>Student ID</span>
                             <input value={form.data.student_id} onChange={(event) => form.setData('student_id', event.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-[#0077b6] focus:ring-2 focus:ring-[#0077b6]/20" />
