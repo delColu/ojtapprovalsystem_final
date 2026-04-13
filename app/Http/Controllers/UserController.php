@@ -51,11 +51,10 @@ class UserController extends Controller
             ->values();
 
         $roles = Role::query()->orderBy('name')->get(['id', 'name']);
-        $departments = Department::query()
+$departments = Department::query()
+            ->with('dean:id,name')
             ->orderBy('name')
-            ->get(['id', 'name'])
-            ->unique('name')
-            ->values();
+            ->get(['id', 'name']);
         $companies = Company::query()
             ->orderBy('name')
             ->get(['id', 'name']);
@@ -67,6 +66,11 @@ class UserController extends Controller
     {
         $role = Role::query()->findOrFail($request->role_id);
 
+        $department = $request->filled('department_id')
+            ? Department::find($request->department_id)
+            : null;
+        $company = $request->filled('company_id') ? Company::find($request->company_id) : null;
+
         $request->validate([
             'name'       => 'required|string|max:255',
             'email'      => 'required|email|unique:users',
@@ -75,12 +79,13 @@ class UserController extends Controller
             'company_id' => 'nullable|exists:companies,id',
             'student_id' => $role->name === 'student' ? 'required|unique:users' : 'nullable|unique:users',
             'is_active' => 'nullable|boolean',
+        ], [
+            'department_id' => function ($attribute, $value, $fail) use ($role, $department) {
+                if ($role->name === 'dean' && $value && $department && $department->dean_id) {
+                    $fail('This department already has a dean (' . ($department->dean?->name ?? 'Unknown') . ').');
+                }
+            },
         ]);
-        $department = $request->filled('department_id')
-            ? Department::query()->find($request->department_id)
-            : null;
-
-        $company = $request->filled('company_id') ? Company::find($request->company_id) : null;
 
         $user = User::create([
             'name'       => $request->name,
@@ -94,6 +99,11 @@ class UserController extends Controller
             'student_id' => $request->student_id,
             'is_active'  => $request->boolean('is_active', true),
         ]);
+
+        // Handle dean assignment
+        if ($role->name === 'dean' && $department) {
+            $department->update(['dean_id' => $user->id]);
+        }
 
         ActivityLog::create([
             'user_id'    => Auth::id(),
@@ -110,6 +120,11 @@ class UserController extends Controller
     {
         $role = Role::query()->findOrFail($request->role_id);
 
+        $department = $request->filled('department_id')
+            ? Department::find($request->department_id)
+            : null;
+        $company = $request->filled('company_id') ? Company::find($request->company_id) : null;
+
         $request->validate([
             'name'      => 'required|string|max:255',
             'email'     => 'required|email|unique:users,email,' . $user->id,
@@ -120,12 +135,13 @@ class UserController extends Controller
                 ? 'required|unique:users,student_id,' . $user->id
                 : 'nullable|unique:users,student_id,' . $user->id,
             'is_active' => 'boolean',
+        ], [
+            'department_id' => function ($attribute, $value, $fail) use ($role, $department, $user) {
+                if ($role->name === 'dean' && $value && $department && $department->dean_id && $department->dean_id !== $user->id) {
+                    $fail('This department already has a dean (' . ($department->dean?->name ?? 'Unknown') . ').');
+                }
+            },
         ]);
-        $department = $request->filled('department_id')
-            ? Department::query()->find($request->department_id)
-            : null;
-
-        $company = $request->filled('company_id') ? Company::find($request->company_id) : null;
 
         // Capture old values before update - use static finds
         $oldDeptId = $user->department_id;
@@ -143,6 +159,14 @@ class UserController extends Controller
             'student_id' => $role->name === 'student' ? $request->student_id : null,
             'is_active' => $request->boolean('is_active'),
         ]);
+
+        // Handle dean assignment
+        if ($role->name === 'dean' && $department) {
+            if ($department->dean_id && $department->dean_id !== $user->id) {
+                // Optionally notify old dean or log
+            }
+            $department->update(['dean_id' => $user->id]);
+        }
 
         // Notify if department or company assignment changed (students/supervisors only)
         $deptChanged = $oldDeptId != $user->department_id;

@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CrudModal, EmptyState, PageIntro, Panel, PrimaryAction, SearchField, SecondaryAction, SelectField, StatusBadge } from './Partials/AdminShared';
 
 const emptyUser = {
@@ -14,18 +14,33 @@ const emptyUser = {
 };
 
 export default function Users({ users, roles, departments, companies = [] }) {
-    const [roleFilter, setRoleFilter] = useState('');
+const [roleFilter, setRoleFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('');
     const [companyFilter, setCompanyFilter] = useState('');
     const [search, setSearch] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [deanError, setDeanError] = useState('');
     const form = useForm(emptyUser);
     const departmentOptions = useMemo(
-        () => departments.map((department) => ({ value: department.name, label: department.name })),
+        () => departments.map((department) => ({
+            value: department.id.toString(),
+            label: `${department.name}${department.dean ? ` (Dean: ${department.dean.name})` : ''}`
+        })),
         [departments],
     );
+    const deanRole = useMemo(() => roles.find(r => r.name === 'dean'), [roles]);
+    useEffect(() => {
+        const selectedRole = deanRole && form.data.role_id === deanRole.id ? 'dean' : null;
+        const selectedDeptId = form.data.department_id;
+        const selectedDept = departments.find(d => d.id.toString() === selectedDeptId);
+        if (selectedRole === 'dean' && selectedDept?.dean && (!editingUser || editingUser.id !== selectedDept.dean.id)) {
+            setDeanError(`Department already has dean: ${selectedDept.dean.name}`);
+        } else {
+            setDeanError('');
+        }
+    }, [form.data.role_id, form.data.department_id, editingUser, departments, deanRole]);
 
     const filteredUsers = useMemo(() => {
         return users.filter((user) => {
@@ -69,6 +84,10 @@ export default function Users({ users, roles, departments, companies = [] }) {
 
     const submit = (event) => {
         event.preventDefault();
+        if (deanError && !form.processing) {
+            form.setError('department_id', deanError);
+            return;
+        }
         const options = { preserveScroll: true, onSuccess: closeModal };
 
         if (editingUser) {
@@ -177,7 +196,19 @@ export default function Users({ users, roles, departments, companies = [] }) {
                             <span>Role</span>
                             <select value={form.data.role_id} onChange={(event) => form.setData('role_id', event.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100">
                                 <option value="">Select role</option>
-                                {roles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
+                                {roles.map((role) => {
+                                    const dept = form.data.department_id ? departments.find(d => d.id.toString() === form.data.department_id) : null;
+                                    const isDeanDisabled = role.name === 'dean' && dept?.dean && (!editingUser || editingUser.id !== dept.dean.id);
+                                    return (
+                                        <option
+                                            key={role.id}
+                                            value={role.id}
+                                            disabled={isDeanDisabled}
+                                        >
+                                            {role.name}
+                                        </option>
+                                    );
+                                })}
                             </select>
                         </label>
                         <label className="space-y-2 text-sm font-medium text-gray-700">
@@ -211,7 +242,12 @@ export default function Users({ users, roles, departments, companies = [] }) {
                     </label>
                     <div className="flex justify-end gap-3">
                         <SecondaryAction onClick={closeModal}>Cancel</SecondaryAction>
-                        <PrimaryAction type="submit" disabled={form.processing}>{form.processing ? 'Saving...' : editingUser ? 'Update User' : 'Create User'}</PrimaryAction>
+                        {deanError && (
+                            <div className="col-span-full rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                                {deanError}
+                            </div>
+                        )}
+                        <PrimaryAction type="submit" disabled={form.processing || !!deanError}>{form.processing ? 'Saving...' : editingUser ? 'Update User' : 'Create User'}</PrimaryAction>
                     </div>
                 </form>
             </CrudModal>

@@ -17,11 +17,11 @@ const emptyIntern = {
     email: '',
     student_id: '',
     department_id: '',
-    company: '',
+    company_id: '',
     is_active: true,
 };
 
-export default function Interns({ interns, departments, filters }) {
+export default function Interns({ interns, departments, companies, filters }) {
     const [search, setSearch] = useState(filters.search || '');
     const [department, setDepartment] = useState(filters.department || '');
     const [status, setStatus] = useState(filters.status || '');
@@ -41,7 +41,7 @@ export default function Interns({ interns, departments, filters }) {
             email: intern.email || '',
             student_id: intern.student_id || '',
             department_id: intern.department_id || '',
-            company: intern.company || '',
+            company_id: intern.company_id || '',
             is_active: Boolean(intern.is_active),
         });
         setModalOpen(true);
@@ -201,18 +201,34 @@ export default function Interns({ interns, departments, filters }) {
                         </label>
                         <label className="space-y-2 text-sm font-medium text-gray-700">
                             <span>Company</span>
-                            <input value={form.data.company} onChange={(event) => form.setData('company', event.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-[#0077b6] focus:ring-2 focus:ring-[#0077b6]/20" />
+                            <select
+                                value={form.data.company_id}
+                                onChange={(event) => form.setData('company_id', event.target.value)}
+                                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-[#0077b6] focus:ring-2 focus:ring-[#0077b6]/20"
+                            >
+                                <option value="">Select company</option>
+                                {companies.map((option) => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.name}
+                                    </option>
+                                ))}
+                            </select>
                         </label>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
-                        <label className="space-y-2 text-sm font-medium text-gray-700">
-                            <span>Department</span>
-                            <select value={form.data.department_id} onChange={(event) => form.setData('department_id', event.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-[#0077b6] focus:ring-2 focus:ring-[#0077b6]/20">
-                                <option value="">Select department</option>
-                                {departments.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}
-                            </select>
-                        </label>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 block">Department</label>
+                            <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 bg-gray-50">
+                                <p className="text-sm font-medium text-gray-900">
+                                    {editingIntern?.department || 'Unassigned'}
+                                </p>
+                                <input
+                                    type="hidden"
+                                    value={form.data.department_id || ''}
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     <label className="flex items-center gap-3 rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-700">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Department;
 use App\Models\Role;
 use App\Models\Submission;
@@ -141,7 +142,7 @@ class DeanController extends Controller
         ]);
     }
 
-    public function interns(Request $request): Response
+public function interns(Request $request): Response
     {
         $departmentIds = $this->departmentIds($this->deanUser());
         $search = trim((string) $request->string('search'));
@@ -149,7 +150,7 @@ class DeanController extends Controller
         $status = (string) $request->string('status');
 
         $interns = $this->internScope($departmentIds)
-            ->with('departmentRecord')
+            ->with(['departmentRecord', 'companyRecord'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($nestedQuery) use ($search) {
                     $nestedQuery
@@ -175,6 +176,11 @@ class DeanController extends Controller
         return Inertia::render('Dean/Interns', [
             'interns' => $interns,
             'departments' => $this->departmentOptions($departmentIds),
+            'companies' => \App\Models\Company::where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn ($c) => ['id' => (string) $c->id, 'name' => $c->name])
+                ->values(),
             'supervisors' => $this->supervisorOptions($departmentIds),
             'filters' => [
                 'search' => $search,
@@ -338,7 +344,7 @@ class DeanController extends Controller
             'student_id' => ['nullable', 'string', 'max:255', 'unique:users,student_id'],
             'department_id' => ['required', 'integer'],
             'supervisor_id' => ['nullable', 'integer'],
-            'company' => ['nullable', 'string', 'max:255'],
+            'company_id' => ['nullable', 'integer', Rule::exists('companies', 'id')],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -350,8 +356,7 @@ class DeanController extends Controller
             'role' => 'student',
             'student_id' => $data['student_id'],
             'department_id' => $department->id,
-            // 'department' => $department->name,  // Use accessor
-            'company' => $data['company'] ?: $department->company,
+            'company_id' => $data['company_id'],
             'supervisor_id' => $supervisor?->id,
             'is_active' => $request->boolean('is_active', true),
         ]);
@@ -372,7 +377,7 @@ class DeanController extends Controller
             'student_id' => ['nullable', 'string', 'max:255', Rule::unique('users', 'student_id')->ignore($user->id)],
             'department_id' => ['required', 'integer'],
             'supervisor_id' => ['nullable', 'integer'],
-            'company' => ['nullable', 'string', 'max:255'],
+            'company_id' => ['nullable', 'integer', Rule::exists('companies', 'id')],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -381,8 +386,7 @@ class DeanController extends Controller
             'email' => strtolower($data['email']),
             'student_id' => $data['student_id'],
             'department_id' => $department->id,
-            // 'department' => $department->name,  // Use accessor
-            'company' => $data['company'] ?: $department->company,
+            'company_id' => $data['company_id'],
             'supervisor_id' => $supervisor?->id,
             'is_active' => $request->boolean('is_active', true),
         ]);
@@ -597,8 +601,9 @@ class DeanController extends Controller
             'email' => $intern->email,
             'student_id' => $intern->student_id,
             'department_id' => $intern->department_id,
-            'department' => $intern->departmentRecord?->name ?? $intern->department,
-            'company' => $intern->company,
+            'department' => $intern->departmentRecord?->name ?? 'Unassigned',
+            'company_id' => $intern->company_id,
+            'company' => $intern->companyRecord?->name ?? $intern->departmentRecord?->company ?? 'Unassigned',
             'supervisor_id' => $intern->supervisor_id,
             'supervisor_name' => User::query()->where('id', $intern->supervisor_id)->value('name') ?? 'Unassigned',
             'submitted' => $submitted,
@@ -666,8 +671,13 @@ class DeanController extends Controller
 
     private function assertDeanOwnsUserDepartment(User $user): void
     {
+        if (!$user->department_id) {
+            return;
+        }
         $department = Department::query()->find($user->department_id);
-        abort_if(! $department, 403);
+        if (! $department) {
+            abort(404);
+        }
         $this->assertDeanOwnsDepartment($department);
     }
 }
